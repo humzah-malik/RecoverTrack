@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Virtual environments
+.venv/
+env/
+ENV/
+
+# OS Files
+.DS_Store
+
+# dotenv
+.env
+
+# Alembic
+alembic/versions/
+
+# Node / React frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.turbo/
+frontend/dist/
+frontend/build/
+frontend/.env
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints
+
+# Docker
+*.sqlite3
+*.db
