@@ -1,12 +1,11 @@
 from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
+from app.routers import user
+from app.database import engine, SessionLocal
 
-load_dotenv()  
+load_dotenv()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-DATABASE_URL = os.getenv("DATABASE_URL")
-# etc.
 
 app = FastAPI()
 
@@ -16,3 +15,7 @@ def health():
       "supabase_url": os.getenv("SUPABASE_URL"),
       "database_url": os.getenv("DATABASE_URL")[:30] + "…"
     }
+
+app.include_router(user.router)
+
+
