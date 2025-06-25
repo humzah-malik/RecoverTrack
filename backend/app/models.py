@@ -8,6 +8,9 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 Base = declarative_base()
 
@@ -35,6 +38,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, default=gen_uuid)
     email = Column(String, unique=True, nullable=False)
+    password_hash = Column(String(128), nullable=False)
     age = Column(Integer)
     sex = Column(String(10))
     height = Column(Float)
@@ -44,6 +48,8 @@ class User(Base):
     maintenance_calories = Column(Integer)
     macro_targets = Column(JSON)          # {'protein':g, 'carbs':g, 'fat':g}
     created_at = Column(DateTime, default=datetime.utcnow)
+    def verify_password(self, plain: str) -> bool:
+        return pwd_context.verify(plain, self.password_hash)
     
 
 class DailyLog(Base):

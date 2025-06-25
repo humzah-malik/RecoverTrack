@@ -1,7 +1,8 @@
+# backend/app/main.py
 from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
-from app.routers import user
+from app.routers import user, auth
 from app.database import engine, SessionLocal
 
 load_dotenv()
@@ -16,6 +17,5 @@ def health():
       "database_url": os.getenv("DATABASE_URL")[:30] + "…"
     }
 
+app.include_router(auth.router)
 app.include_router(user.router)
-
-
