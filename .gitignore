@@ -14,12 +14,11 @@ build/
 .venv/
 env/
 ENV/
+.env
+.env.*
 
 # OS Files
 .DS_Store
-
-# dotenv
-.env
 
 # Alembic
 alembic/versions/
