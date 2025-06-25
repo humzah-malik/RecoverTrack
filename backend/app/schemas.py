@@ -55,6 +55,7 @@ class UserUpdate(BaseModel):
     sex: Optional[str]
     height: Optional[float]
     weight: Optional[float]
+    weight_unit: Optional[str] = None
     goal: Optional[str]
     maintenance_calories: Optional[int]
     macro_targets: Optional[dict]
