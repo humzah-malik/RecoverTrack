@@ -42,6 +42,7 @@ class User(Base):
     age = Column(Integer)
     sex = Column(String(10))
     height = Column(Float)
+    height_unit = Column(String(5), default="cm")
     weight = Column(Float, nullable=True)
     weight_unit = Column(String(5), default="kg")
     goal = Column(String(20))    # 'cutting','bulking','performance','maintenance'
