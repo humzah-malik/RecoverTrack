@@ -41,6 +41,10 @@ class DailyLogBase(BaseModel):
 
     @model_validator(mode="before")
     def check_workout_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        # only validate on raw dict input
+        if not isinstance(values, dict):
+            return values
+
         trained = values.get("trained")
         # always require date
         if values.get("date") is None:

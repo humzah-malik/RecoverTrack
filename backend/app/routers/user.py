@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.routers.auth import get_current_user
 from app.database import SessionLocal
-from app.models import User
+from app.models import User, DailyLog
 from app.schemas import UserOut, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
