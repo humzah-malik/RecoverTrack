@@ -1,5 +1,5 @@
 # backend/app/schemas.py
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationError
 from typing import List, Optional
 from datetime import date
 
@@ -45,18 +45,46 @@ class UserOut(BaseModel):
     sex: Optional[str]
     height: Optional[float]
     weight: Optional[float]
+    height_unit: Optional[str]
+    weight_unit: Optional[str]
     goal: Optional[str]
     maintenance_calories: Optional[int]
     macro_targets: Optional[dict]
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
-    age: Optional[int]
-    sex: Optional[str]
-    height: Optional[float]
-    weight: Optional[float]
+    age: Optional[int] = None
+    sex: Optional[str] = None
+    height: Optional[float] = None
+    weight: Optional[float] = None
     height_unit: Optional[str] = None
     weight_unit: Optional[str] = None
-    goal: Optional[str]
-    maintenance_calories: Optional[int]
-    macro_targets: Optional[dict]
+    goal: Optional[str] = None
+    maintenance_calories: Optional[int] = None
+    macro_targets: Optional[dict] = None
+
+    @field_validator('age')
+    def validate_age(cls, v):
+        if v is not None and not (10 <= v <= 120):
+            raise ValueError('Age must be between 10 and 120')
+        return v
+
+    @model_validator(mode="before")
+    def validate_units(cls, values):
+        height = values.get("height")
+        height_unit = values.get("height_unit")
+        if height is not None and height_unit:
+            if height_unit == "cm" and not (100 <= height <= 250):
+                raise ValueError("Height in cm must be between 100 and 250")
+            elif height_unit == "in" and not (39 <= height <= 98):
+                raise ValueError("Height in inches must be between 39 and 98")
+
+        weight = values.get("weight")
+        weight_unit = values.get("weight_unit")
+        if weight is not None and weight_unit:
+            if weight_unit == "kg" and not (30 <= weight <= 250):
+                raise ValueError("Weight in kg must be between 30 and 250")
+            elif weight_unit == "lb" and not (66 <= weight <= 550):
+                raise ValueError("Weight in lb must be between 66 and 550")
+
+        return values
