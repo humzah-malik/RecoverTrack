@@ -1,6 +1,6 @@
 # backend/app/schemas.py
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationError
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import date
 
 class SessionSchema(BaseModel):
@@ -17,14 +17,52 @@ class SplitTemplateOut(BaseModel):
     name: str
     sessions: List[SessionSchema]
 
-class DailyLogCreate(BaseModel):
+class DailyLogBase(BaseModel):
     date: date
-    trained: bool
-    split_template_id: Optional[str]
-    total_sets: int
-    failure_sets: int
-    total_rir: int
-    # other fields add later if needed
+    trained: Optional[bool] = None
+    split_template_id: Optional[str] = None
+
+    # recovery (pre-workout) fields
+    sleep_start: Optional[str] = None # "23:30"
+    sleep_end: Optional[str] = None  # "06:30"
+    sleep_quality: Optional[int] = None # 1–5
+    resting_hr: Optional[int] = None
+    hrv: Optional[float] = None
+    soreness: Optional[Dict[str, str]] = None # {"Quads":"High",…}
+    stress: Optional[int] = None  # 1–5
+    motivation: Optional[int] = None # 1–5
+
+    # post-workout fields
+    total_sets: Optional[int] = None
+    failure_sets: Optional[int] = None
+    total_rir: Optional[int] = None
+    calories: Optional[int] = None
+    macros: Optional[Dict[str, int]] = None # {"protein":160,…}
+
+    @model_validator(mode="before")
+    def check_workout_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        trained = values.get("trained")
+        # always require date
+        if values.get("date") is None:
+            raise ValueError("`date` is required")
+        # if they say yes, enforce post-workout fields
+        if trained:
+            missing = [f for f in ("total_sets","failure_sets","total_rir") 
+                       if values.get(f) is None]
+            if missing:
+                raise ValueError(f"On trained days, missing {missing}")
+        return values
+
+class DailyLogCreate(DailyLogBase):
+    pass
+
+
+class DailyLogOut(DailyLogBase):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True
 
 class UserCreate(BaseModel):
     email: str

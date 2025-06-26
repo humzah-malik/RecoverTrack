@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
-from app.routers import user, auth
+from app.routers import user, auth, daily_log
 from app.database import engine, SessionLocal
 
 load_dotenv()
@@ -19,3 +19,4 @@ def health():
 
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(daily_log.router)
