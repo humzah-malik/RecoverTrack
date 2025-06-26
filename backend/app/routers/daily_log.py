@@ -98,8 +98,10 @@ def bulk_import_logs(
 
         for _, row in df.iterrows():
             try:
+                row = row.where(pd.notnull(row), None)
                 date_value = pd.to_datetime(row["date"]).date()
-                trained = bool(row.get("trained", False))
+                trained_raw = str(row.get("trained", "")).strip().upper()
+                trained = 1 if trained_raw in ["Y", "YES", "TRUE", "1"] else 0
 
                 log_data = {
                     "date": date_value,
@@ -118,7 +120,7 @@ def bulk_import_logs(
                     "calories": row.get("calories"),
                     "macros": eval(row.get("macros")) if row.get("macros") else None,
                     "split": row.get("split"),
-                    "workout": row.get("workout")
+                    # "workout": row.get("workout")
                 }
 
                 obj = (
