@@ -92,6 +92,9 @@ class UserOut(BaseModel):
     goal: Optional[str]
     maintenance_calories: Optional[int]
     macro_targets: Optional[dict]
+    activity_level: Optional[str]
+    weight_target: Optional[float]
+    weight_target_unit: Optional[str]
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
@@ -104,6 +107,9 @@ class UserUpdate(BaseModel):
     goal: Optional[str] = None
     maintenance_calories: Optional[int] = None
     macro_targets: Optional[dict] = None
+    activity_level: Optional[str] = None
+    weight_target: Optional[float] = None
+    weight_target_unit: Optional[str] = None
 
     @field_validator('age')
     def validate_age(cls, v):

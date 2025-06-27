@@ -48,7 +48,10 @@ class User(Base):
     goal = Column(String(20))    # 'cutting','bulking','performance','maintenance'
     split_template = Column(String(50))   # e.g. 'Upper/Lower'
     maintenance_calories = Column(Integer)
-    macro_targets = Column(JSON)          # {'protein':g, 'carbs':g, 'fat':g}
+    macro_targets = Column(JSON)  # {'protein':g, 'carbs':g, 'fat':g}
+    activity_level = Column(String(10), nullable=True)
+    weight_target = Column(Float, nullable=True)
+    weight_target_unit = Column(String(5), default="kg")
     created_at = Column(DateTime, default=datetime.utcnow)
     def verify_password(self, plain: str) -> bool:
         return pwd_context.verify(plain, self.password_hash)
