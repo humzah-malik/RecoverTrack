@@ -6,7 +6,7 @@ import pandas as pd
 from io import BytesIO
 
 from app.database import SessionLocal
-from app.models import DailyLog
+from app.models import DailyLog, SplitSession, SplitTemplate
 from app.schemas import DailyLogCreate, DailyLogOut
 from app.routers.auth import get_current_user
 
@@ -29,6 +29,36 @@ def upsert_daily_log(
     # makes sure trained lands in the int4 column
     if "trained" in data:
         data["trained"] = 1 if data["trained"] else 0
+
+    # Manual override normalization (insert this)
+    tpl_id = data.get("split_template_id") or current_user.split_template_id
+    manual = data.get("split")
+    if manual and tpl_id:
+        sessions = (
+            db.query(SplitSession)
+              .filter_by(template_id=tpl_id)
+              .all()
+        )
+        # map lowercase → canonical
+        names = {s.name.lower(): s.name for s in sessions}
+        key = manual.strip().lower()
+        if key in names:
+            data["split"] = names[key]
+        else:
+            raise HTTPException(400, f"Session '{manual}' not in template")
+
+    # Fallback inference if no manual override and trained
+    elif data.get("trained") and tpl_id:
+        sessions = (
+            db.query(SplitSession)
+              .filter_by(template_id=tpl_id)
+              .order_by(SplitSession.id)
+              .all()
+        )
+        if sessions:
+            idx = payload.date.weekday() % len(sessions)
+            data["split"] = sessions[idx].name
+            data["split_template_id"] = tpl_id  
 
     # upserts by (user_id, date)
     obj = (

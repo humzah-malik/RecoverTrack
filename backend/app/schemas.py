@@ -8,18 +8,27 @@ class SessionSchema(BaseModel):
     name: str
     muscle_groups: List[str]
 
+    model_config = ConfigDict(from_attributes=True)
+
 class SplitTemplateCreate(BaseModel):
     name: str
+    type: str # 'strength'|'cardio'|'mixed'
     sessions: List[SessionSchema]
 
 class SplitTemplateOut(BaseModel):
     id: str
     name: str
+    type: str
+    is_preset: int
     sessions: List[SessionSchema]
+
+    model_config = ConfigDict(from_attributes=True)
 
 class DailyLogBase(BaseModel):
     date: date
     trained: Optional[bool] = None
+    # which session from the split template (inferred if trained)
+    split: Optional[str] = None
     split_template_id: Optional[str] = None
 
     # recovery (pre-workout) fields
@@ -65,6 +74,9 @@ class DailyLogOut(DailyLogBase):
     id: str
     user_id: str
 
+    # which session from the split template (inferred if trained)
+    split: Optional[str] = None
+
     class Config:
         from_attributes = True
 
@@ -95,6 +107,7 @@ class UserOut(BaseModel):
     activity_level: Optional[str]
     weight_target: Optional[float]
     weight_target_unit: Optional[str]
+    split_template_id: Optional[str]
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
@@ -110,6 +123,7 @@ class UserUpdate(BaseModel):
     activity_level: Optional[str] = None
     weight_target: Optional[float] = None
     weight_target_unit: Optional[str] = None
+    split_template_id: Optional[str] = None
 
     @field_validator('age')
     def validate_age(cls, v):

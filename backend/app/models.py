@@ -21,7 +21,9 @@ class SplitTemplate(Base):
     __tablename__ = "split_templates"
     id = Column(String, primary_key=True, default=gen_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
-    name = Column(String(100), nullable=False)         # e.g. "Push/Pull/Legs"
+    name = Column(String(100), nullable=False)
+    type = Column(String(20), nullable=False, default="strength")  # 'strength' | 'cardio' | 'mixed'
+    is_preset = Column(Integer, default=0)   # 1=preset (built in), 0=custom
     created_at = Column(DateTime, default=datetime.utcnow)
 
     sessions = relationship("SplitSession", back_populates="template", cascade="all, delete-orphan")
@@ -46,7 +48,8 @@ class User(Base):
     weight = Column(Float, nullable=True)
     weight_unit = Column(String(5), default="kg")
     goal = Column(String(20))    # 'cutting','bulking','performance','maintenance'
-    split_template = Column(String(50))   # e.g. 'Upper/Lower'
+    # split_template = Column(String(50))   # e.g. 'Upper/Lower'
+    split_template_id = Column(String, ForeignKey("split_templates.id"), nullable=True)
     maintenance_calories = Column(Integer)
     macro_targets = Column(JSON)  # {'protein':g, 'carbs':g, 'fat':g}
     activity_level = Column(String(10), nullable=True)
