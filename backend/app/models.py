@@ -89,6 +89,7 @@ class DailyLog(Base):
     soreness = Column(JSON, nullable=True)  # {'Quads':'High',etc}
     calories = Column(Integer, nullable=True)
     macros = Column(JSON, nullable=True)    # {'protein':g,'carbs':g,'fat':g}
+    weight = Column(Float, nullable=True)
     stress = Column(Integer, nullable=True)
     motivation = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

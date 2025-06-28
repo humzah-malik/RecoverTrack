@@ -222,6 +222,32 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
         if abs(p_pct - 100) <= 10 and abs(c_pct - 100) <= 10 and abs(f_pct - 100) <= 10:
             compliance_hits += 1
 
+    # Weight progress: % toward user.weight_target
+    # collect all logged weights
+    weights = [l.weight for l in days if getattr(l, "weight", None) is not None]
+    if weights:
+        start_w, end_w = weights[0], weights[-1]
+    else:
+        start_w = end_w = user.weight or 0.0
+
+    # normalize units to kg
+    if user.weight_unit != "kg":
+        start_w *= 0.453592
+        end_w   *= 0.453592
+    tgt_w = (
+        user.weight_target
+        if user.weight_target_unit == "kg"
+        else (user.weight_target or 0.0) * 0.453592
+    )
+
+    # percent toward target
+    if tgt_w and (tgt_w - start_w):
+        pct_to_target = (end_w - start_w) / (tgt_w - start_w) * 100
+    else:
+        pct_to_target = 0.0
+    pct_to_target = round(pct_to_target, 1)
+
+    # build & return the context dict
     return {
         "start_date":              start.isoformat(),
         "end_date":                (next_month - timedelta(days=1)).isoformat(),
@@ -237,6 +263,7 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
         "monthly_avg_sleep_quality": sleep_quality_sum / n_days,
         "monthly_avg_protein_pct": protein_pct_sum / n_days,
         "monthly_avg_carbs_pct":   carbs_pct_sum / n_days,
+        "pct_to_target": c_pct,
         "monthly_avg_fat_pct":     fat_pct_sum / n_days,
         # weight progress can be added once DailyLog includes weight fields
     }
