@@ -6,6 +6,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
 import uuid
 from passlib.context import CryptContext
@@ -95,3 +96,21 @@ class DailyLog(Base):
         String, ForeignKey("split_templates.id"), nullable=True
     )
     split_template = relationship("SplitTemplate")
+
+
+class RuleTemplate(Base):
+    __tablename__  = "rule_templates"
+    id             = Column(String, primary_key=True)
+    description    = Column(String, nullable=False)
+    conditions     = Column(JSON, nullable=False)   # JSON array of {field,operator,value}
+    advice         = Column(String, nullable=False)
+    for_goals      = Column(ARRAY(String), nullable=True)    # NULL or e.g. ["cutting","bulking"]
+    timeframe      = Column(String, nullable=False) # "daily" | "weekly" | "monthly"
+
+class DailyDigest(Base):
+    __tablename__ = "daily_digests"
+    user_id       = Column(String, ForeignKey("users.id"), primary_key=True)
+    date          = Column(Date, primary_key=True)
+    alerts        = Column(JSON, nullable=False)   # list of advice strings
+    micro_tips    = Column(JSON, nullable=False)   # list of tip strings
+    created_at    = Column(DateTime, default=datetime.utcnow)

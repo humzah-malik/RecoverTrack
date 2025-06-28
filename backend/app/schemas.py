@@ -150,3 +150,37 @@ class UserUpdate(BaseModel):
                 raise ValueError("Weight in lb must be between 66 and 550")
 
         return values
+    
+# ── Rule Templates ────────────────────────────────────────────────────────────
+
+class RuleTemplateBase(BaseModel):
+    id: str
+    description: str
+    conditions: List[Dict]           # e.g. [{"field":"sleep_h","operator":"<","value":6}]
+    advice: str
+    for_goals: Optional[List[str]]   # e.g. ["cutting","maintenance"]
+    timeframe: str                   # "daily" | "weekly" | "monthly"
+
+class RuleTemplateCreate(RuleTemplateBase):
+    pass
+
+class RuleTemplateUpdate(BaseModel):
+    description: Optional[str]
+    conditions:  Optional[List[Dict]]
+    advice:      Optional[str]
+    for_goals:   Optional[List[str]]
+    timeframe:   Optional[str]
+
+class RuleTemplateOut(RuleTemplateBase):
+    class Config:
+        from_attributes = True
+
+# ── Daily Digest ─────────────────────────────────────────────────────────────
+
+class DailyDigestOut(BaseModel):
+    user_id: str
+    date: date
+    alerts: List[str]
+    micro_tips: List[str]
+    class Config:
+        from_attributes = True

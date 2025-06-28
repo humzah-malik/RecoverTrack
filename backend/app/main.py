@@ -2,15 +2,17 @@
 from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
-from app.models import SplitTemplate, SplitSession
-from app.routers import user, auth, daily_log, splits
+from app.models import SplitTemplate, SplitSession, Base
+from app.routers import user, auth, daily_log, splits, rules_templates
 from app.database import engine, SessionLocal
+from app.routers.analytics import router as analytics_router
 from datetime import datetime
 
 load_dotenv()
 
-
 app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
 
 PRESETS = [
     {
@@ -136,3 +138,5 @@ app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(daily_log.router)
 app.include_router(splits.router)
+app.include_router(rules_templates.router)
+app.include_router(analytics_router)

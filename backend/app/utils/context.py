@@ -39,7 +39,12 @@ def build_daily_context(user: User, up_to: date, db: Session) -> Dict[str, Any]:
         try:
             sh, sm = map(int, log.sleep_start.split(":"))
             eh, em = map(int, log.sleep_end.split(":"))
-            ctx["sleep_h"] = ((eh * 60 + em) - (sh * 60 + sm)) / 60.0
+            # raw difference in minutes
+            delta = (eh * 60 + em) - (sh * 60 + sm)
+            # if negative, you crossed midnight → add 24h
+            if delta < 0:
+                delta += 24 * 60
+            ctx["sleep_h"] = delta / 60.0
         except ValueError:
             ctx["sleep_h"] = 0.0
     else:
@@ -113,9 +118,13 @@ def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]
             try:
                 sh, sm = map(int, l.sleep_start.split(":"))
                 eh, em = map(int, l.sleep_end.split(":"))
-                sleep_h_sum += ((eh * 60 + em) - (sh * 60 + sm)) / 60.0
+                delta = (eh * 60 + em) - (sh * 60 + sm)
+                if delta < 0:
+                    delta += 24 * 60
+                sleep_h_sum += delta / 60.0
             except ValueError:
                 pass
+
         sleep_quality_sum += (l.sleep_quality or 0)
 
         # Macro percentages
@@ -186,14 +195,18 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
     for l in days:
         if l.trained:
             trained_count += 1
-
         if l.sleep_start and l.sleep_end:
             try:
                 sh, sm = map(int, l.sleep_start.split(":"))
                 eh, em = map(int, l.sleep_end.split(":"))
-                sleep_h_sum += ((eh * 60 + em) - (sh * 60 + sm)) / 60.0
+                delta = (eh * 60 + em) - (sh * 60 + sm)
+                if delta < 0:
+                    delta += 24 * 60
+                sleep_h_sum += delta / 60.0
             except ValueError:
                 pass
+        sleep_quality_sum += (l.sleep_quality or 0)
+
         sleep_quality_sum += (l.sleep_quality or 0)
 
         # Macro percentages & compliance within ±10%
