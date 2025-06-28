@@ -1,0 +1,229 @@
+# app/utils/context.py
+
+from datetime import date, timedelta
+from typing import Dict, Any
+from sqlalchemy.orm import Session
+from app.models import DailyLog, User
+
+def build_daily_context(user: User, up_to: date, db: Session) -> Dict[str, Any]:
+    """
+    Build a context dict of daily metrics for the user on date `up_to`.
+    Used for rule evaluation, ML features, and analytics endpoints.
+    """
+    log = (
+        db.query(DailyLog)
+          .filter(DailyLog.user_id == user.id, DailyLog.date == up_to)
+          .first()
+    )
+    if not log:
+        log = DailyLog()  # empty defaults
+
+    # Core fields
+    ctx: Dict[str, Any] = {
+        "date": up_to.isoformat(),
+        "trained": int(bool(log.trained)),
+        "split": log.split or "",
+        "total_sets": log.total_sets or 0,
+        "failure_sets": log.failure_sets or 0,
+        "total_rir": log.total_rir or 0,
+        "calories": log.calories or 0,
+        "sleep_quality": log.sleep_quality or 0,
+        "resting_hr": log.resting_hr or 0,
+        "hrv": log.hrv or 0.0,
+        "stress": log.stress or 0,
+        "motivation": log.motivation or 0,
+    }
+
+    # Compute sleep hours
+    if log.sleep_start and log.sleep_end:
+        try:
+            sh, sm = map(int, log.sleep_start.split(":"))
+            eh, em = map(int, log.sleep_end.split(":"))
+            ctx["sleep_h"] = ((eh * 60 + em) - (sh * 60 + sm)) / 60.0
+        except ValueError:
+            ctx["sleep_h"] = 0.0
+    else:
+        ctx["sleep_h"] = 0.0
+
+    # Avoid divide-by-zero when no sets
+    sets_for_calc = ctx["total_sets"] if ctx["total_sets"] > 0 else 1
+    ctx["failure_pct"] = ctx["failure_sets"] / sets_for_calc
+    ctx["avg_rir"]    = ctx["total_rir"] / sets_for_calc
+
+    # Calorie deficit vs. maintenance
+    maintenance = user.maintenance_calories or 1
+    ctx["cal_deficit_pct"] = (ctx["calories"] - maintenance) / maintenance
+
+    # Macros as percentage of targets
+    targets = user.macro_targets or {}
+    p_t = targets.get("protein", 0) or 1
+    c_t = targets.get("carbs",   0) or 1
+    f_t = targets.get("fat",     0) or 1
+    m    = log.macros or {}
+
+    ctx["protein_pct"] = (m.get("protein", 0) / p_t) * 100
+    ctx["carbs_pct"]   = (m.get("carbs",   0) / c_t) * 100
+    ctx["fat_pct"]     = (m.get("fat",     0) / f_t) * 100
+
+    # Pass through soreness JSON
+    ctx["soreness"] = log.soreness or {}
+
+    return ctx
+
+
+def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]:
+    """
+    Build a context dict of weekly aggregates for the 7-day period ending at `up_to`.
+    """
+    start = up_to - timedelta(days=6)
+    logs  = (
+        db.query(DailyLog)
+          .filter(DailyLog.user_id == user.id,
+                  DailyLog.date.between(start, up_to))
+          .all()
+    )
+    days      = logs or []
+    n_days    = len(days) if days else 1
+
+    # Straight sums
+    total_sets    = sum(l.total_sets or 0 for l in days)
+    failure_sets  = sum(l.failure_sets or 0 for l in days)
+    total_rir     = sum(l.total_rir or 0 for l in days)
+    calories_sum  = sum(l.calories or 0 for l in days)
+
+    # Sleep & macros
+    sleep_h_sum       = 0.0
+    sleep_quality_sum = 0
+    protein_pct_sum   = 0.0
+    carbs_pct_sum     = 0.0
+    fat_pct_sum       = 0.0
+    trained_count     = 0
+
+    targets = user.macro_targets or {}
+    p_t = targets.get("protein", 0) or 1
+    c_t = targets.get("carbs",   0) or 1
+    f_t = targets.get("fat",     0) or 1
+
+    for l in days:
+        if l.trained:
+            trained_count += 1
+
+        # Sleep accumulation
+        if l.sleep_start and l.sleep_end:
+            try:
+                sh, sm = map(int, l.sleep_start.split(":"))
+                eh, em = map(int, l.sleep_end.split(":"))
+                sleep_h_sum += ((eh * 60 + em) - (sh * 60 + sm)) / 60.0
+            except ValueError:
+                pass
+        sleep_quality_sum += (l.sleep_quality or 0)
+
+        # Macro percentages
+        m = l.macros or {}
+        protein_pct_sum += (m.get("protein", 0) / p_t) * 100
+        carbs_pct_sum   += (m.get("carbs",   0) / c_t) * 100
+        fat_pct_sum     += (m.get("fat",     0) / f_t) * 100
+
+    return {
+        "start_date":         start.isoformat(),
+        "end_date":           up_to.isoformat(),
+        "weekly_sessions":    trained_count,
+        "weekly_total_sets":  total_sets,
+        "weekly_failure_sets":failure_sets,
+        "weekly_total_rir":   total_rir,
+        "pct_failure":        (failure_sets / total_sets) if total_sets else 0,
+        "avg_rir":            (total_rir / total_sets) if total_sets else 0,
+        "avg_calories":       calories_sum / n_days,
+        "total_calories":     calories_sum,
+        "avg_sleep_h":        sleep_h_sum / n_days,
+        "avg_sleep_quality":  sleep_quality_sum / n_days,
+        "avg_protein_pct":    protein_pct_sum / n_days,
+        "avg_carbs_pct":      carbs_pct_sum / n_days,
+        "avg_fat_pct":        fat_pct_sum / n_days,
+    }
+
+
+def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]:
+    """
+    Build a context dict of monthly aggregates for the calendar month 'YYYY-MM'.
+    """
+    year, mon = map(int, month.split("-"))
+    start     = date(year, mon, 1)
+    # first day of next month
+    if mon == 12:
+        next_month = date(year + 1, 1, 1)
+    else:
+        next_month = date(year, mon + 1, 1)
+
+    logs   = (
+        db.query(DailyLog)
+          .filter(DailyLog.user_id == user.id,
+                  DailyLog.date >= start,
+                  DailyLog.date <  next_month)
+          .all()
+    )
+    days      = logs or []
+    n_days    = len(days) if days else 1
+
+    total_sets   = sum(l.total_sets or 0 for l in days)
+    failure_sets = sum(l.failure_sets or 0 for l in days)
+    total_rir    = sum(l.total_rir or 0 for l in days)
+    calories_sum = sum(l.calories or 0 for l in days)
+
+    sleep_h_sum       = 0.0
+    sleep_quality_sum = 0
+    protein_pct_sum   = 0.0
+    carbs_pct_sum     = 0.0
+    fat_pct_sum       = 0.0
+    compliance_hits   = 0
+    trained_count     = 0
+
+    targets = user.macro_targets or {}
+    p_t = targets.get("protein", 0) or 1
+    c_t = targets.get("carbs",   0) or 1
+    f_t = targets.get("fat",     0) or 1
+
+    for l in days:
+        if l.trained:
+            trained_count += 1
+
+        if l.sleep_start and l.sleep_end:
+            try:
+                sh, sm = map(int, l.sleep_start.split(":"))
+                eh, em = map(int, l.sleep_end.split(":"))
+                sleep_h_sum += ((eh * 60 + em) - (sh * 60 + sm)) / 60.0
+            except ValueError:
+                pass
+        sleep_quality_sum += (l.sleep_quality or 0)
+
+        # Macro percentages & compliance within ±10%
+        m = l.macros or {}
+        p_pct = (m.get("protein", 0) / p_t) * 100
+        c_pct = (m.get("carbs",   0) / c_t) * 100
+        f_pct = (m.get("fat",     0) / f_t) * 100
+
+        protein_pct_sum += p_pct
+        carbs_pct_sum   += c_pct
+        fat_pct_sum     += f_pct
+
+        if abs(p_pct - 100) <= 10 and abs(c_pct - 100) <= 10 and abs(f_pct - 100) <= 10:
+            compliance_hits += 1
+
+    return {
+        "start_date":              start.isoformat(),
+        "end_date":                (next_month - timedelta(days=1)).isoformat(),
+        "monthly_sessions":        trained_count,
+        "monthly_total_sets":      total_sets,
+        "monthly_failure_sets":    failure_sets,
+        "monthly_total_rir":       total_rir,
+        "monthly_avg_rir":         (total_rir / total_sets) if total_sets else 0,
+        "macro_compliance_pct":    (compliance_hits / n_days) * 100,
+        "monthly_total_calories":  calories_sum,
+        "monthly_avg_calories":    calories_sum / n_days,
+        "monthly_avg_sleep_h":     sleep_h_sum / n_days,
+        "monthly_avg_sleep_quality": sleep_quality_sum / n_days,
+        "monthly_avg_protein_pct": protein_pct_sum / n_days,
+        "monthly_avg_carbs_pct":   carbs_pct_sum / n_days,
+        "monthly_avg_fat_pct":     fat_pct_sum / n_days,
+        # weight progress can be added once DailyLog includes weight fields
+    }
