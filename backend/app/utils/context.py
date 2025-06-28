@@ -87,22 +87,26 @@ def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]
                   DailyLog.date.between(start, up_to))
           .all()
     )
-    days      = logs or []
-    n_days    = len(days) if days else 1
+    days = logs or []
+    cal_days = sum(1 for l in days if l.calories is not None)
+    sleep_days = sum(1 for l in days if l.sleep_start and l.sleep_end)
+    sq_days = sum(1 for l in days if l.sleep_quality is not None)
+    macro_days = sum(1 for l in days if l.macros and user.macro_targets)
+    n_days = len(days) if days else 1
 
     # Straight sums
-    total_sets    = sum(l.total_sets or 0 for l in days)
-    failure_sets  = sum(l.failure_sets or 0 for l in days)
-    total_rir     = sum(l.total_rir or 0 for l in days)
-    calories_sum  = sum(l.calories or 0 for l in days)
+    total_sets = sum(l.total_sets or 0 for l in days)
+    failure_sets = sum(l.failure_sets or 0 for l in days)
+    total_rir = sum(l.total_rir or 0 for l in days)
+    calories_sum = sum(l.calories or 0 for l in days)
 
     # Sleep & macros
-    sleep_h_sum       = 0.0
+    sleep_h_sum = 0.0
     sleep_quality_sum = 0
-    protein_pct_sum   = 0.0
-    carbs_pct_sum     = 0.0
-    fat_pct_sum       = 0.0
-    trained_count     = 0
+    protein_pct_sum = 0.0
+    carbs_pct_sum = 0.0
+    fat_pct_sum = 0.0
+    trained_count = 0
 
     targets = user.macro_targets or {}
     p_t = targets.get("protein", 0) or 1
@@ -142,13 +146,13 @@ def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]
         "weekly_total_rir":   total_rir,
         "pct_failure":        (failure_sets / total_sets) if total_sets else 0,
         "avg_rir":            (total_rir / total_sets) if total_sets else 0,
-        "avg_calories":       calories_sum / n_days,
+        "avg_calories":       calories_sum / (cal_days   or 1),
         "total_calories":     calories_sum,
-        "avg_sleep_h":        sleep_h_sum / n_days,
-        "avg_sleep_quality":  sleep_quality_sum / n_days,
-        "avg_protein_pct":    protein_pct_sum / n_days,
-        "avg_carbs_pct":      carbs_pct_sum / n_days,
-        "avg_fat_pct":        fat_pct_sum / n_days,
+        "avg_sleep_h":        sleep_h_sum   / (sleep_days or 1),
+        "avg_sleep_quality":  sleep_quality_sum / (sq_days   or 1),
+        "avg_protein_pct":    protein_pct_sum / (macro_days or 1),
+        "avg_carbs_pct":      carbs_pct_sum     / (macro_days or 1),
+        "avg_fat_pct":        fat_pct_sum       / (macro_days or 1),
     }
 
 
@@ -172,7 +176,11 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
           .all()
     )
     days      = logs or []
-    n_days    = len(days) if days else 1
+    cal_days = sum(1 for l in days if l.calories is not None)
+    sleep_days = sum(1 for l in days if l.sleep_start and l.sleep_end)
+    sq_days = sum(1 for l in days if l.sleep_quality is not None)
+    macro_days = sum(1 for l in days if l.macros and user.macro_targets)
+    n_days = len(days) if days else 1
 
     total_sets   = sum(l.total_sets or 0 for l in days)
     failure_sets = sum(l.failure_sets or 0 for l in days)
@@ -247,6 +255,13 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
         pct_to_target = 0.0
     pct_to_target = round(pct_to_target, 1)
 
+    avg_calories      = calories_sum      / (cal_days   or 1)
+    avg_sleep_h       = sleep_h_sum       / (sleep_days or 1)
+    avg_sleep_quality = sleep_quality_sum / (sq_days    or 1)
+    avg_protein_pct   = protein_pct_sum   / (macro_days or 1)
+    avg_carbs_pct     = carbs_pct_sum     / (macro_days or 1)
+    avg_fat_pct       = fat_pct_sum       / (macro_days or 1)
+
     # build & return the context dict
     return {
         "start_date":              start.isoformat(),
@@ -258,12 +273,11 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
         "monthly_avg_rir":         (total_rir / total_sets) if total_sets else 0,
         "macro_compliance_pct":    (compliance_hits / n_days) * 100,
         "monthly_total_calories":  calories_sum,
-        "monthly_avg_calories":    calories_sum / n_days,
-        "monthly_avg_sleep_h":     sleep_h_sum / n_days,
-        "monthly_avg_sleep_quality": sleep_quality_sum / n_days,
-        "monthly_avg_protein_pct": protein_pct_sum / n_days,
-        "monthly_avg_carbs_pct":   carbs_pct_sum / n_days,
-        "pct_to_target": c_pct,
-        "monthly_avg_fat_pct":     fat_pct_sum / n_days,
-        # weight progress can be added once DailyLog includes weight fields
+        "monthly_avg_calories":    avg_calories,
+        "monthly_avg_sleep_h":     avg_sleep_h,
+        "monthly_avg_sleep_quality": avg_sleep_quality,
+        "monthly_avg_protein_pct": avg_protein_pct,
+        "monthly_avg_carbs_pct":   avg_carbs_pct,
+        "pct_to_target": pct_to_target,
+        "monthly_avg_fat_pct":     avg_fat_pct,
     }
