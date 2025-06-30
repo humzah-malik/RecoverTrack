@@ -48,9 +48,21 @@ class DailyLogBase(BaseModel):
     calories: Optional[int] = None
     macros: Optional[Dict[str, int]] = None # {"protein":160,…}
     weight: Optional[float] = None
-    weight_unit: Optional[str]  = None  # "kg"|"lb"
+    weight_unit: Optional[str]  = "lb"  # "kg"|"lb"
     recovery_rating: Optional[int] = None  # 0–100
-    water_intake_l: Optional[int] = None # litres
+    water_intake_l: Optional[float] = None # litres
+
+    @field_validator("recovery_rating")
+    def validate_recovery_range(cls, v):
+        if v is not None and not (0 <= v <= 100):
+            raise ValueError("`recovery_rating` must be between 0 and 100")
+        return v
+
+    @field_validator("water_intake_l")
+    def validate_water_nonnegative(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("`water_intake_l` must be non-negative")
+        return v
 
     @model_validator(mode="before")
     def check_workout_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
