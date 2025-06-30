@@ -49,6 +49,8 @@ class DailyLogBase(BaseModel):
     macros: Optional[Dict[str, int]] = None # {"protein":160,…}
     weight: Optional[float] = None
     weight_unit: Optional[str]  = None  # "kg"|"lb"
+    recovery_rating: Optional[int] = None  # 0–100
+    water_intake_l: Optional[int] = None # litres
 
     @model_validator(mode="before")
     def check_workout_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:

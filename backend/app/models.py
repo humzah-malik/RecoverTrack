@@ -93,7 +93,9 @@ class DailyLog(Base):
     weight_unit = Column(String(5), nullable=True, default="kg")
     stress = Column(Integer, nullable=True)
     motivation = Column(Integer, nullable=True)
+    recovery_rating = Column(Integer, nullable=True) # 0-100
     created_at = Column(DateTime, default=datetime.utcnow)
+    water_intake_l = Column(Float, nullable=True)  # liters
     split_template_id = Column(
         String, ForeignKey("split_templates.id"), nullable=True
     )
