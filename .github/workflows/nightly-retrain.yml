@@ -46,7 +46,7 @@ jobs:
     - name: Save model artifacts
       run: |
         TODAY=$(date +'%Y-%m-%d')
-        mkdir -p models/$TODAY
+        mkdir -p backend/models/$TODAY
         cp backend/app/recovery_*.pt backend/models/$TODAY/ || true
         cp backend/app/recovery_*.joblib backend/models/$TODAY/ || true
         cp backend/app/recovery_*.pkl backend/models/$TODAY/ || true
