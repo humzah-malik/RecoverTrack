@@ -9,15 +9,27 @@ import torch
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from torch import nn
+import os
 
-# Model / Preprocessor loading
+BASE = Path(__file__).resolve().parent
+LATEST_DIR = BASE.parent.parent / "models" / "latest"
+FALLBACK_DIR = BASE
 
-BASE = Path(__file__).parent.parent
-PREPROC_PATH = BASE / "recovery_preproc_with_user_bias.joblib"
-MODEL_PATH   = BASE / "recovery_mlp_with_user_bias.pt"
+def try_load(name, ext):
+    for base in [LATEST_DIR, FALLBACK_DIR]:
+        path = base / f"{name}.{ext}"
+        if path.exists():
+            if ext == "pkl":
+                with open(path, "rb") as f:
+                    return joblib.load(f)
+            elif ext == "joblib":
+                return joblib.load(path)
+            elif ext == "pt":
+                return torch.load(path, map_location=_device)
+    raise FileNotFoundError(f"Could not find {name}.{ext} in latest/ or fallback dir")
 
-preprocessor = joblib.load(PREPROC_PATH)
+# Set up model and preprocessor
+preprocessor = try_load("recovery_preproc_with_user_bias", "joblib")
 class MLP(nn.Module):
     def __init__(self, in_dim, hidden=32):
         super().__init__()
@@ -31,23 +43,20 @@ class MLP(nn.Module):
 
 _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# figure out how many inputs the MLP expects
-num_pipe   = preprocessor.named_transformers_['num']             # your numeric pipeline
-# the scaler step on that pipeline knows how many features it saw:
-num_dim    = num_pipe.named_steps['scale'].n_features_in_
-cat_enc    = preprocessor.named_transformers_['cat']             # your OneHotEncoder
-# each entry in categories_ is the unique values for one cat‐column
-cat_dim    = sum(len(cats) for cats in cat_enc.categories_)
-_in_dim    = num_dim + cat_dim
+num_pipe = preprocessor.named_transformers_['num']
+num_dim = num_pipe.named_steps['scale'].n_features_in_
+cat_enc = preprocessor.named_transformers_['cat']
+cat_dim = sum(len(cats) for cats in cat_enc.categories_)
+_in_dim = num_dim + cat_dim
 
 _model = MLP(_in_dim, hidden=32).to(_device)
-_model.load_state_dict(torch.load(MODEL_PATH, map_location=_device))
+_model.load_state_dict(try_load("recovery_mlp_with_user_bias", "pt"))
 _model.eval()
 
-GLOBAL_MEAN = joblib.load(BASE / "recovery_global_mean.pkl")
-ALL_MUSCLES = joblib.load(BASE / "recovery_all_muscles.pkl")
-Y_MEAN = joblib.load(BASE / "recovery_y_mean.pkl")
-Y_STD  = joblib.load(BASE / "recovery_y_std.pkl")
+GLOBAL_MEAN = try_load("recovery_global_mean", "pkl")
+ALL_MUSCLES = try_load("recovery_all_muscles", "pkl")
+Y_MEAN = try_load("recovery_y_mean", "pkl")
+Y_STD  = try_load("recovery_y_std", "pkl")
 
 def predict_recovery(df: pd.DataFrame) -> float:
     X = preprocessor.transform(df)
