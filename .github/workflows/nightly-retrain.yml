@@ -1,0 +1,53 @@
+name: Nightly Retrain
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # every night at 4 AM UTC
+  workflow_dispatch:     # allow manual run from GitHub UI
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.12
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Update dataset
+      run: |
+        python backend/scripts/update_dataset.py
+
+    - name: Train model
+      run: |
+        python backend/scripts/train_recovery_lr.py
+
+    - name: Save model artifacts
+      run: |
+        TODAY=$(date +'%Y-%m-%d')
+        mkdir -p models/$TODAY
+        cp backend/app/recovery_*.pt models/$TODAY/ || true
+        cp backend/app/recovery_*.joblib models/$TODAY/ || true
+        cp backend/app/recovery_*.pkl models/$TODAY/ || true
+
+        # update latest symlink
+        rm -f models/latest
+        ln -s $TODAY models/latest
+
+    - name: Auto commit updated model
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "🤖 Nightly model retrain: ${{ github.run_id }}"
+        branch: main
