@@ -7,9 +7,9 @@ from pathlib import Path
 from supabase import create_client, Client
 
 # Load current CSV
-csv_path = Path("recovery_dataset.csv")
+csv_path = Path("backend/recovery_dataset.csv")
 if not csv_path.exists():
-    raise FileNotFoundError("recovery_dataset.csv not found in root.")
+    raise FileNotFoundError("recovery_dataset.csv not found in backend.")
 
 df = pd.read_csv(csv_path, parse_dates=["date"])
 last_date = df["date"].max()
