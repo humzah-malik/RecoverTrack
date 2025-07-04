@@ -43,8 +43,8 @@ jobs:
         cp backend/app/recovery_*.pkl models/$TODAY/ || true
 
         # update latest symlink
-        rm -f models/latest
-        ln -s $TODAY models/latest
+        rm -f backend/models/latest
+        ln -s $TODAY backend/models/latest
 
     - name: Auto commit updated model
       uses: stefanzweifel/git-auto-commit-action@v5
