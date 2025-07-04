@@ -28,7 +28,7 @@ response = (
     supabase.table("daily_logs")
     .select("*")
     .gt("date", last_date.isoformat())
-    .filter("recovery_rating", "not.is", None)
+    .not_.is_("recovery_rating", "null")
     .execute()
 )
 
