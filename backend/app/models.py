@@ -86,7 +86,7 @@ class DailyLog(Base):
     sleep_quality = Column(Integer, nullable=True)
     resting_hr = Column(Integer, nullable=True)
     hrv = Column(Float, nullable=True)
-    soreness = Column(JSON, nullable=True)  # {'Quads':'High',etc}
+    soreness = Column(Integer, nullable=True)  # 1–5 overall soreness
     calories = Column(Integer, nullable=True)
     macros = Column(JSON, nullable=True)    # {'protein':g,'carbs':g,'fat':g}
     weight = Column(Float, nullable=True)

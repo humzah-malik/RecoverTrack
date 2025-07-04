@@ -37,7 +37,7 @@ class DailyLogBase(BaseModel):
     sleep_quality: Optional[int] = None # 1–5
     resting_hr: Optional[int] = None
     hrv: Optional[float] = None
-    soreness: Optional[Dict[str, str]] = None # {"Quads":"High",…}
+    soreness: Optional[int] = None  # 1–5 overall muscle soreness
     stress: Optional[int] = None  # 1–5
     motivation: Optional[int] = None # 1–5
 
@@ -51,6 +51,12 @@ class DailyLogBase(BaseModel):
     weight_unit: Optional[str]  = "lb"  # "kg"|"lb"
     recovery_rating: Optional[int] = None  # 0–100
     water_intake_l: Optional[float] = None # litres
+
+    @field_validator("soreness")
+    def validate_soreness_range(cls, v):
+        if v is not None and not (1 <= v <= 5):
+            raise ValueError("`soreness` must be between 1 and 5")
+        return v
 
     @field_validator("recovery_rating")
     def validate_recovery_range(cls, v):
@@ -200,3 +206,13 @@ class DailyDigestOut(BaseModel):
     micro_tips: List[str]
     class Config:
         from_attributes = True
+
+
+class RecoveryPredictRequest(BaseModel):
+    user_id: str
+    date: Optional[date] = None   # YYYY-MM-DD; if omitted, use today()
+
+class RecoveryPredictResponse(BaseModel):
+    predicted_recovery_rating: float
+
+    model_config = ConfigDict(from_attributes=True)

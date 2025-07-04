@@ -4,6 +4,58 @@ from datetime import date, timedelta
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 from app.models import DailyLog, User
+import joblib
+import torch
+import numpy as np
+import pandas as pd
+from pathlib import Path
+from torch import nn
+
+# Model / Preprocessor loading
+
+BASE = Path(__file__).parent.parent
+PREPROC_PATH = BASE / "recovery_preproc_with_user_bias.joblib"
+MODEL_PATH   = BASE / "recovery_mlp_with_user_bias.pt"
+
+preprocessor = joblib.load(PREPROC_PATH)
+class MLP(nn.Module):
+    def __init__(self, in_dim, hidden=32):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(hidden, 1),
+        )
+    def forward(self, x): return self.net(x).squeeze(1)
+
+_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# figure out how many inputs the MLP expects
+num_pipe   = preprocessor.named_transformers_['num']             # your numeric pipeline
+# the scaler step on that pipeline knows how many features it saw:
+num_dim    = num_pipe.named_steps['scale'].n_features_in_
+cat_enc    = preprocessor.named_transformers_['cat']             # your OneHotEncoder
+# each entry in categories_ is the unique values for one cat‐column
+cat_dim    = sum(len(cats) for cats in cat_enc.categories_)
+_in_dim    = num_dim + cat_dim
+
+_model = MLP(_in_dim, hidden=32).to(_device)
+_model.load_state_dict(torch.load(MODEL_PATH, map_location=_device))
+_model.eval()
+
+GLOBAL_MEAN = joblib.load(BASE / "recovery_global_mean.pkl")
+ALL_MUSCLES = joblib.load(BASE / "recovery_all_muscles.pkl")
+Y_MEAN = joblib.load(BASE / "recovery_y_mean.pkl")
+Y_STD  = joblib.load(BASE / "recovery_y_std.pkl")
+
+def predict_recovery(df: pd.DataFrame) -> float:
+    X = preprocessor.transform(df)
+    t = torch.tensor(X, dtype=torch.float32, device=_device)
+    with torch.no_grad():
+        out_norm = _model(t).cpu().numpy().item()
+    # convert back to the original 0–100 scale:
+    return float(out_norm * Y_STD + Y_MEAN)
 
 def build_daily_context(user: User, up_to: date, db: Session) -> Dict[str, Any]:
     """

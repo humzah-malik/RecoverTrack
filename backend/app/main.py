@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
 from app.models import SplitTemplate, SplitSession, Base
-from app.routers import user, auth, daily_log, splits, rules_templates
+from app.routers import user, auth, daily_log, splits, rules_templates, recovery
 from app.database import engine, SessionLocal
 from app.routers.analytics import router as analytics_router
 from datetime import datetime
@@ -140,3 +140,4 @@ app.include_router(daily_log.router)
 app.include_router(splits.router)
 app.include_router(rules_templates.router)
 app.include_router(analytics_router)
+app.include_router(recovery.router)
