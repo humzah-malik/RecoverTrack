@@ -39,8 +39,9 @@ jobs:
         python backend/scripts/update_dataset.py
 
     - name: Train model
+      working-directory: backend
       run: |
-        python backend/scripts/train_recovery_lr.py
+        python scripts/train_recovery_lr.py
 
     - name: Save model artifacts
       run: |
