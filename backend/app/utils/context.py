@@ -6,13 +6,14 @@ from sqlalchemy.orm import Session
 from app.models import DailyLog, User
 import joblib
 import torch
+from torch import nn
 import numpy as np
 import pandas as pd
 from pathlib import Path
 import os
 
-BASE = Path(__file__).resolve().parent
-LATEST_DIR = BASE.parent.parent / "models" / "latest"
+BASE = Path(__file__).resolve().parent.parent
+LATEST_DIR = BASE.parent / "models" / "latest"
 FALLBACK_DIR = BASE
 
 def try_load(name, ext):
