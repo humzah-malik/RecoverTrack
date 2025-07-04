@@ -13,7 +13,11 @@ import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
-df = pd.read_csv("recovery_dataset.csv", parse_dates=["date"])
+BASE_DIR = Path(__file__).parent.parent   # this is the “backend” folder
+DATA_PATH = BASE_DIR / "recovery_dataset.csv"
+if not DATA_PATH.exists():
+    raise FileNotFoundError(f"Dataset not found at {DATA_PATH}")
+df = pd.read_csv(DATA_PATH, parse_dates=["date"])
 df = df.dropna(subset=["recovery_rating"])
 df.sort_values(["user_id","date"], inplace=True)
 for f in ("soreness","stress","sleep_quality"):
