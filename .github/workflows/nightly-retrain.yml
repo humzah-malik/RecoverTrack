@@ -1,5 +1,8 @@
 name: Nightly Retrain
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '0 4 * * *'  # every night at 4 AM UTC
