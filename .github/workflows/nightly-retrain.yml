@@ -47,9 +47,9 @@ jobs:
       run: |
         TODAY=$(date +'%Y-%m-%d')
         mkdir -p models/$TODAY
-        cp backend/app/recovery_*.pt models/$TODAY/ || true
-        cp backend/app/recovery_*.joblib models/$TODAY/ || true
-        cp backend/app/recovery_*.pkl models/$TODAY/ || true
+        cp backend/app/recovery_*.pt backend/models/$TODAY/ || true
+        cp backend/app/recovery_*.joblib backend/models/$TODAY/ || true
+        cp backend/app/recovery_*.pkl backend/models/$TODAY/ || true
 
         # update latest symlink
         rm -f backend/models/latest
