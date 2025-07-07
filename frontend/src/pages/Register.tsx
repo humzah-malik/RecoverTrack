@@ -3,6 +3,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import axios, { AxiosError } from 'axios';
+import { useState } from 'react';
 
 const registerSchema = z.object({
   email: z.string().email({ message: 'Invalid email' }),
@@ -11,8 +14,9 @@ const registerSchema = z.object({
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  console.log('Register component rendered')
   const { register: registerUser } = useAuth();
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -20,12 +24,24 @@ export default function Register() {
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
 
   const onSubmit = async (data: RegisterForm) => {
-    await registerUser(data);
+    setApiError(null);
+    try {
+      await registerUser(data);
+      navigate('/auth/login');
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 409) {
+        setApiError('An account with that email already exists.');
+      } else {
+        setApiError('Unexpected error—please try again.');
+      }
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-heading">Create Account</h1>
+
+      {apiError && <p className="text-red-500">{apiError}</p>}
 
       <div>
         <label className="block font-medium">Email</label>

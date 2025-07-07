@@ -7,6 +7,7 @@ from app.routers import user, auth, daily_log, splits, rules_templates, recovery
 from app.database import engine, SessionLocal
 from app.routers.analytics import router as analytics_router
 from datetime import datetime
+from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()

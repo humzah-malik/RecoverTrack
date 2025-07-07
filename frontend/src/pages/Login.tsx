@@ -1,8 +1,8 @@
-// src/pages/Login.tsx
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email' }),
@@ -12,6 +12,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -19,7 +20,13 @@ export default function Login() {
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginForm) => {
-    await login(data);
+    try {
+      await login(data);
+      navigate('/onboarding');
+    } catch (e) {
+      console.error(e);
+      // handle login errors if needed
+    }
   };
 
   return (
