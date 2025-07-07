@@ -1,41 +1,77 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Landing from '../pages/Landing';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
-import Onboarding from '../pages/Onboarding';
-import Dashboard from '../pages/Dashboard';
-import CalendarPage from '../pages/Calendar';
-import Trends from '../pages/Trends';
-import Profile from '../pages/Profile';
-import { useAuth } from '../hooks/useAuth';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import Landing from '../pages/Landing'
+import Login   from '../pages/Login'
+import Register from '../pages/Register'
+import Onboarding from '../pages/Onboarding'
+import Dashboard  from '../pages/Dashboard'
+import CalendarPage from '../pages/Calendar'
+import Trends      from '../pages/Trends'
+import Profile     from '../pages/Profile'
+import { useAuth } from '../hooks/useAuth'
 
-const queryClient = new QueryClient();
-
+// A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/auth/login" />;
+  const { isAuthenticated } = useAuth()
+  return isAuthenticated ? children : <Navigate to="/auth/login" replace />
 }
 
 export default function AppRouter() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="auth">
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-          </Route>
-          <Route path="onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
-            <Route index element={<Dashboard />} />
-            <Route path="calendar" element={<CalendarPage />} />
-            <Route path="trends" element={<Trends />} />
-            <Route path="profile" element={<Profile />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
-  );
+    <BrowserRouter>
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<Landing />} />
+        <Route path="auth">
+          <Route path="login"    element={<Login />} />
+          <Route path="register" element={<Register />} />
+        </Route>
+
+        {/* Protected */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              {/* You could wrap these in a Layout if you have nav */}
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="calendar"
+          element={
+            <ProtectedRoute>
+              <CalendarPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="trends"
+          element={
+            <ProtectedRoute>
+              <Trends />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="onboarding"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback for unknown URLs */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
