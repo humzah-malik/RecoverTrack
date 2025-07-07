@@ -131,6 +131,7 @@ class UserOut(BaseModel):
     weight_target_unit: Optional[str]
     split_template_id: Optional[str]
     model_config = ConfigDict(from_attributes=True)
+    has_completed_onboarding: Optional[bool] = False
 
 class UserUpdate(BaseModel):
     age: Optional[int] = None

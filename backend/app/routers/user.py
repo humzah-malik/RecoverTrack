@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.routers.auth import get_current_user
 from app.database import SessionLocal
-from app.models import User, DailyLog
+from app.models import User, DailyLog, SplitTemplate
 from app.schemas import UserOut, UserUpdate
 from app.utils.nutrition import compute_nutrition_profile
 
@@ -59,4 +59,10 @@ def update_profile(
 @router.post("/me/reset", status_code=204)
 def reset_account(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     db.query(DailyLog).filter(DailyLog.user_id == current_user.id).delete()
+    db.commit()
+
+@router.post("/me/complete-onboarding", status_code=204)
+def complete_onboarding(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    user: User = db.query(User).get(current_user.id)
+    user.has_completed_onboarding = True
     db.commit()

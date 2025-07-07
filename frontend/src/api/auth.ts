@@ -17,6 +17,7 @@ export interface UserOut {
   weight_target: number | null;
   weight_target_unit: string | null;
   split_template_id: string | null;
+  has_completed_onboarding?: boolean;
 }
 
 export interface RegisterPayload {

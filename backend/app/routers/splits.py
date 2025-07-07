@@ -26,7 +26,7 @@ def list_splits(current_user=Depends(get_current_user), db: Session = Depends(ge
     adopted_ids = [link.template_id for link in adopted_links]
     adopted = db.query(SplitTemplate).filter(SplitTemplate.id.in_(adopted_ids)).all()
 
-    return customs + adopted
+    return presets + customs + adopted
 
 @router.post("/", response_model=SplitTemplateOut, status_code=201)
 def create_split(data: SplitTemplateCreate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):

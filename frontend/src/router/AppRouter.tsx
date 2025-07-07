@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Landing from '../pages/Landing'
-import Login   from '../pages/Login'
+import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Onboarding from '../pages/Onboarding'
-import Dashboard  from '../pages/Dashboard'
+import Dashboard from '../pages/Dashboard'
 import CalendarPage from '../pages/Calendar'
-import Trends      from '../pages/Trends'
-import Profile     from '../pages/Profile'
+import Trends from '../pages/Trends'
+import Profile from '../pages/Profile'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile';
 
 // A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -16,22 +17,23 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function AppRouter() {
+  const { profile } = useProfile();
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
+        {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="auth">
-          <Route path="login"    element={<Login />} />
+          <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
         </Route>
 
-        {/* Protected */}
+        {/* Protected Routes */}
         <Route
-          path="/"
+          path="dashboard"
           element={
             <ProtectedRoute>
-              {/* You could wrap these in a Layout if you have nav */}
               <Dashboard />
             </ProtectedRoute>
           }
@@ -61,15 +63,17 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="onboarding"
-          element={
+        path="onboarding"
+        element={
             <ProtectedRoute>
-              <Onboarding />
+            {profile?.has_completed_onboarding
+                ? <Navigate to="/dashboard" replace />
+                : <Onboarding />}
             </ProtectedRoute>
-          }
+        }
         />
 
-        {/* Fallback for unknown URLs */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

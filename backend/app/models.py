@@ -59,6 +59,7 @@ class User(Base):
     weight_target_unit = Column(String(5), default="kg")
     auto_nutrition = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    has_completed_onboarding = Column(Boolean, default=False)
     def verify_password(self, plain: str) -> bool:
         return pwd_context.verify(plain, self.password_hash)
     
