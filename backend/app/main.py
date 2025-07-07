@@ -7,12 +7,26 @@ from app.routers import user, auth, daily_log, splits, rules_templates, recovery
 from app.database import engine, SessionLocal
 from app.routers.analytics import router as analytics_router
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
+
+origins = [
+    "http://localhost:5173",
+    # production URL
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"], 
+)
 
 PRESETS = [
     {
