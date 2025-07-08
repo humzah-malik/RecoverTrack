@@ -9,6 +9,7 @@ import Trends from '../pages/Trends'
 import Profile from '../pages/Profile'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile';
+import ThemeToggle from '../components/ThemeToggle'
 
 // A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -22,6 +23,11 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Global header with theme toggle */}
++     <div className="fixed top-4 right-4 z-50">
++       <ThemeToggle />
++     </div>
++     <Routes></Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="auth">

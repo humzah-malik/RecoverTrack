@@ -38,6 +38,7 @@ export const useAuth = create<AuthState>()(
           refreshToken: refresh_token,
           isAuthenticated: true,
         });
+        localStorage.setItem("access_token", access_token);
         const me = await fetchMe();
         set({ user: me });
       },

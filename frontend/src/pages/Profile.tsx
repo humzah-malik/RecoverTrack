@@ -22,7 +22,8 @@ export default function Profile() {
         <InfoRow label="Email" value={user.email} />
         <InfoRow label="Age" value={user.age} />
         <InfoRow label="Sex" value={user.sex} />
-        <InfoRow label="Height (cm)" value={user.height} />
+        <InfoRow label="Height" value={user.height} />
+        <InfoRow label="Height Unit" value={user.height_unit} />
         <InfoRow label="Weight" value={user.weight} />
         <InfoRow label="Weight Unit" value={user.weight_unit} />
       </Section>
@@ -31,7 +32,14 @@ export default function Profile() {
       <Section title="Goals">
         <InfoRow label="Goal" value={user.goal} />
         <InfoRow label="Maintenance Calories" value={user.maintenance_calories} />
-        <InfoRow label="Macro Targets" value={user.macro_targets} />
+        <InfoRow
+          label="Macro Targets"
+          value={
+            user.macro_targets
+              ? `Protein: ${user.macro_targets.protein}, Carbs: ${user.macro_targets.carbs}, Fat: ${user.macro_targets.fat}`
+              : "Not set"
+          }
+        />
       </Section>
 
       {/* Buttons */}
@@ -40,7 +48,7 @@ export default function Profile() {
           Reset Account
         </button>
         <Link
-          to="/"
+          to="/dashboard"
           className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black"
         >
           Back to Dashboard
