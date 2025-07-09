@@ -1,66 +1,71 @@
-// src/pages/Onboarding.tsx
-import { useState } from 'react'
-import { useProfile, useSplits } from '../hooks/useProfile'
-import { ProfileStep } from './Onboarding/ProfileStep'
-import { GoalStep } from './Onboarding/GoalStep'
-import { ReviewStep } from './Onboarding/ReviewStep'
-import { SplitStep } from './Onboarding/SplitStep'
+import { useState } from 'react';
+import { useProfile, useSplits } from '../hooks/useProfile';
+import { ProfileStep } from './Onboarding/ProfileStep';
+import { GoalStep } from './Onboarding/GoalStep';
+import { ReviewStep } from './Onboarding/ReviewStep';
+import { SplitStep } from './Onboarding/SplitStep';
 import { markOnboardingComplete } from '../api/users';
 
 export default function Onboarding() {
-  const { profile, isLoading, updateProfile } = useProfile()
-  const { data: splits } = useSplits()
-  const [step, setStep] = useState(0)
+  const { profile, isLoading, updateProfile } = useProfile();
+  const { data: splits } = useSplits();
+  const [step, setStep] = useState(0);
 
-  if (isLoading) return <p>Loading…</p>
+  if (isLoading) return <p>Loading…</p>;
 
   return (
     <div className="max-w-lg mx-auto p-6 space-y-6">
-      {/* STEP 0: Profile */}
+      {/* ─── Step 0 : Profile ───────────────────────── */}
       {step === 0 && (
         <ProfileStep
           defaultValues={profile || {}}
           onNext={async (data) => {
-            await updateProfile(data)
-            setStep(1)
+            try {
+              await updateProfile(data);
+            } finally {
+              setStep(1);
+            }
           }}
         />
       )}
 
-      {/* STEP 1: Goal & Activity */}
+      {/* ─── Step 1 : Goal & Activity ──────────────── */}
       {step === 1 && (
         <GoalStep
           defaultValues={profile || {}}
+          onPrev={() => setStep(0)}
           onNext={async ({ goal, activity_level }) => {
-            await updateProfile({ goal, activity_level })
-            setStep(2)
+            await updateProfile({ goal, activity_level });
+            setStep(2);
           }}
         />
       )}
 
-      {/* STEP 2: Review & Edit Calories/Macros */}
+      {/* ─── Step 2 : Review ───────────────────────── */}
       {step === 2 && profile && (
         <ReviewStep
           profile={profile}
+          onPrev={() => setStep(1)}
           onNext={async (data) => {
-            await updateProfile(data)
-            setStep(3)
+            await updateProfile(data);
+            setStep(3);
           }}
         />
       )}
 
-      {/* STEP 3: Choose or Create Split */}
+      {/* ─── Step 3 : Split ────────────────────────── */}
       {step === 3 && (
         <SplitStep
           splits={splits || []}
           defaultSplitId={profile?.split_template_id || ''}
+          onPrev={() => setStep(2)}
           onNext={async (data) => {
-            await updateProfile(data)
+            await updateProfile(data);
             await markOnboardingComplete();
-            window.location.href = '/dashboard'
+            window.location.href = '/dashboard';
           }}
         />
       )}
     </div>
-  )
+  );
 }
