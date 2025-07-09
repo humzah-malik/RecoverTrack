@@ -1,6 +1,5 @@
-// src/api/auth.ts
 import api from './client';
-
+import rawAuthClient from './rawAuthClient';   // ⬅️ no interceptors attached
 export interface UserOut {
   id: string;
   email: string;
@@ -24,6 +23,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
 }
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -34,22 +34,24 @@ export interface TokenResponse {
   refresh_token: string;
 }
 
-// POST /auth/register → returns UserOut
 export function register(data: RegisterPayload) {
-  return api.post<UserOut>('/auth/register', data).then(res => res.data);
+  return api.post<UserOut>('/auth/register', data).then((r) => r.data);
 }
 
-// POST /auth/login → returns tokens
 export function login(data: LoginPayload) {
-  return api.post<TokenResponse>('/auth/login', data).then(res => res.data);
+  return api.post<TokenResponse>('/auth/login', data).then((r) => r.data);
 }
 
-// GET /auth/me → returns UserOut
 export function fetchMe() {
-  return api.get<UserOut>('/auth/me').then(res => res.data);
+  return api.get<UserOut>('/auth/me').then((r) => r.data);
 }
 
-// POST /auth/refresh → returns tokens
-export function refreshToken() {
-  return api.post<TokenResponse>('/auth/refresh').then(res => res.data);
+export function refreshToken(refresh_token: string) {
+  return rawAuthClient
+    .post<TokenResponse>(
+      '/auth/refresh',
+      null,
+      { headers: { Authorization: `Bearer ${refresh_token}` } }
+    )
+    .then((r) => r.data);
 }

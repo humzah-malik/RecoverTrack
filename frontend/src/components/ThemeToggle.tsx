@@ -22,7 +22,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="focus:outline-none"
+      className="fixed bottom-4 right-4 z-50 focus:outline-none"
     >
       <div
         className={

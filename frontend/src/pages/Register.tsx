@@ -1,67 +1,153 @@
-// src/pages/Register.tsx
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
-import { useState } from 'react';
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
+import { useAuth } from '../hooks/useAuth'
+import AuthLayout from '../layouts/AuthLayout'
+
+/* ──────────────────────────────────────────────────────────
+   Validation
+   ────────────────────────────────────────────────────────── */
 const registerSchema = z.object({
-  email: z.string().email({ message: 'Invalid email' }),
+  email: z.string().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'At least 6 characters' }),
-});
-type RegisterForm = z.infer<typeof registerSchema>;
+})
+type RegisterForm = z.infer<typeof registerSchema>
 
 export default function Register() {
-  const { register: registerUser } = useAuth();
-  const navigate = useNavigate();
-  const [apiError, setApiError] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const { register: registerUser } = useAuth()
+  const [apiError, setApiError] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
+  } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) })
 
+  /* ──────────────────────────────────────────────────────── */
   const onSubmit = async (data: RegisterForm) => {
-    setApiError(null);
+    setApiError(null)
     try {
-      await registerUser(data);
-      navigate('/auth/login');
-    } catch (err) {
-      if (err instanceof AxiosError && err.response?.status === 409) {
-        setApiError('An account with that email already exists.');
-      } else {
-        setApiError('Unexpected error—please try again.');
-      }
+      await registerUser(data)
+      navigate('/auth/login')
+    } catch (err: any) {
+      setApiError(
+        err?.response?.status === 409
+          ? 'An account with that email already exists.'
+          : 'Unexpected error — please try again.'
+      )
     }
-  };
+  }
 
+  /* ──────────────────────────────────────────────────────── */
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-heading">Create Account</h1>
-
-      {apiError && <p className="text-red-500">{apiError}</p>}
-
-      <div>
-        <label className="block font-medium">Email</label>
-        <input type="email" {...register('email')} className="input w-full" />
-        {errors.email && <p className="text-red-500">{errors.email.message}</p>}
-      </div>
-
-      <div>
-        <label className="block font-medium">Password</label>
-        <input type="password" {...register('password')} className="input w-full" />
-        {errors.password && <p className="text-red-500">{errors.password.message}</p>}
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="btn-primary w-full py-2 mt-4"
+    <AuthLayout>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-5"
+        noValidate
       >
-        {isSubmitting ? 'Creating…' : 'Register'}
-      </button>
-    </form>
-  );
+        {apiError && (
+          <p className="text-sm text-danger">{apiError}</p>
+        )}
+
+        {/* ── Email ─────────────────────────────────────── */}
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-semibold mb-1"
+          >
+            Email
+          </label>
+          <div className="relative">
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              {...register('email')}
+              className="w-full rounded-md border border-gray-300 py-2.5 pl-3 pr-10
+                         text-gray-700 placeholder-gray-400
+                         focus:border-primary focus:ring-1 focus:ring-primary
+                         dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200
+                         dark:placeholder-gray-500"
+            />
+            <i
+              className="fas fa-envelope absolute right-3 top-1/2 -translate-y-1/2
+                         text-gray-400 text-lg pointer-events-none"
+            />
+          </div>
+          {errors.email && (
+            <p className="mt-1 text-sm text-danger">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
+        {/* ── Password ──────────────────────────────────── */}
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-semibold mb-1"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              {...register('password')}
+              className="w-full rounded-md border border-gray-300 py-2.5 pl-3 pr-10
+                         text-gray-700 placeholder-gray-400
+                         focus:border-primary focus:ring-1 focus:ring-primary
+                         dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200
+                         dark:placeholder-gray-500"
+            />
+            <i
+              className="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2
+                         text-gray-400 text-lg pointer-events-none"
+            />
+          </div>
+          {errors.password && (
+            <p className="mt-1 text-sm text-danger">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+
+        {/* ── Submit ────────────────────────────────────── */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-md bg-black py-2.5 text-white
+                     transition-opacity disabled:opacity-50"
+        >
+          {isSubmitting ? 'Creating…' : 'Register'}
+        </button>
+
+        {/* ── Divider ───────────────────────────────────── */}
+        <div className="flex items-center">
+          <hr className="flex-grow border-gray-200 dark:border-gray-600" />
+          <span className="mx-3 text-sm text-gray-400">
+            or continue with
+          </span>
+          <hr className="flex-grow border-gray-200 dark:border-gray-600" />
+        </div>
+
+        {/* ── Google ────────────────────────────────────── */}
+        <button
+          type="button"
+          className="flex w-full items-center justify-center gap-2 rounded-md
+                     border border-gray-300 py-2.5 font-semibold
+                     hover:bg-gray-50 dark:border-gray-600
+                     dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          Continue with&nbsp;Google
+        </button>
+      </form>
+    </AuthLayout>
+  )
 }

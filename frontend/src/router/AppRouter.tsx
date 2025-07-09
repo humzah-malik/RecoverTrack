@@ -1,3 +1,4 @@
+// src/router/AppRouter.tsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Landing from '../pages/Landing'
 import Login from '../pages/Login'
@@ -8,7 +9,7 @@ import CalendarPage from '../pages/Calendar'
 import Trends from '../pages/Trends'
 import Profile from '../pages/Profile'
 import { useAuth } from '../hooks/useAuth'
-import { useProfile } from '../hooks/useProfile';
+import { useProfile } from '../hooks/useProfile'
 import ThemeToggle from '../components/ThemeToggle'
 
 // A simple protected wrapper
@@ -18,16 +19,16 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function AppRouter() {
-  const { profile } = useProfile();
+  const { profile } = useProfile()
 
   return (
     <BrowserRouter>
+      {/* Global header with theme toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       <Routes>
-        {/* Global header with theme toggle */}
-+     <div className="fixed top-4 right-4 z-50">
-+       <ThemeToggle />
-+     </div>
-+     <Routes></Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="auth">
@@ -69,14 +70,16 @@ export default function AppRouter() {
           }
         />
         <Route
-        path="onboarding"
-        element={
+          path="onboarding"
+          element={
             <ProtectedRoute>
-            {profile?.has_completed_onboarding
-                ? <Navigate to="/dashboard" replace />
-                : <Onboarding />}
+              {profile?.has_completed_onboarding ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Onboarding />
+              )}
             </ProtectedRoute>
-        }
+          }
         />
 
         {/* Fallback */}
