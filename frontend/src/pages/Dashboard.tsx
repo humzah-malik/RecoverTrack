@@ -1,5 +1,10 @@
 // src/pages/Dashboard.tsx
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';                                  // for computing dates
+import { useQueryClient } from '@tanstack/react-query';     // for invalidating recovery on save
+
+import DailyAccordion from '../components/DailyAccordion';  // your new accordion component
+import RecoveryScoreDisplay from '../components/RecoveryScoreDisplay';
 import { Avatar } from '../components/Avatar';
 import { useProfile } from '../hooks/useProfile';
 import { Disclosure } from '@headlessui/react';
@@ -15,6 +20,9 @@ export default function Dashboard() {
   ];
   const navigate = useNavigate();
   const { profile, isLoading } = useProfile();
+  const today = dayjs().format('YYYY-MM-DD');
+  //const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+  const queryClient = useQueryClient();
   const { pathname } = useLocation();
   const activeIdx = Math.max(0, nav.findIndex(n => pathname.startsWith(n.to)));
 
@@ -115,29 +123,27 @@ export default function Dashboard() {
         </section>
 
         {/* Recovery score */}
-        <section
-          aria-label="Recovery score"
-          className="bg-white border border-gray-200 rounded-lg p-10 flex flex-col items-center text-center"
-        >
-          <div className="w-24 h-24 rounded-full border-2 border-gray-300 flex items-center justify-center mb-4">
-            <span className="text-2xl font-extrabold">--</span>
-          </div>
-          <p className="font-semibold mb-1">No recovery score yet</p>
-          <p className="text-gray-500 text-xs">Complete at least one daily log</p>
+        <section aria-label="Recovery score" className="bg-white border border-gray-200 rounded-lg p-10 flex flex-col items-center text-center">
+          <RecoveryScoreDisplay date={today} />
         </section>
 
         {/* Daily logs */}
-        <section aria-label="Daily logs" className="space-y-4">
-          {[
-            { icon: 'fas fa-flag', label: 'Morning Check-in', open: true },
-            { icon: 'fas fa-dumbbell', label: 'Evening Log', open: false },
-          ].map(({ icon, label, open }) => (
-            <details key={label} open={open} className="border-b border-gray-200 pb-2">
-              <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold">
-                <i className={`${icon} text-xs`} /> {label}
-              </summary>
-            </details>
-          ))}
+        <section aria-label="Daily logs" className="space-y-6">
+          <DailyAccordion
+            date={today}
+            type="evening"
+            label="Yesterday’s Evening Check-In"
+            onSave={() => queryClient.invalidateQueries({ queryKey: ['daily-log', today] })}
+          />
+          <DailyAccordion
+            date={today}
+            type="morning"
+            label="Today’s Morning Check-In"
+            onSave={() => {
+              queryClient.invalidateQueries({ queryKey: ['daily-log', today] });
+              queryClient.invalidateQueries({ queryKey: ['recovery', today] });
+            }}
+          />
         </section>
 
         {/* Metric cards */}

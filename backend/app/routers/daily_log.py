@@ -26,6 +26,7 @@ def upsert_daily_log(
     db: Session = Depends(get_db),
 ):
     data = payload.model_dump(exclude_unset=True)
+    print("Payload received by /daily-log:", data)
     # makes sure trained lands in the int4 column
     if "trained" in data:
         data["trained"] = 1 if data["trained"] else 0
