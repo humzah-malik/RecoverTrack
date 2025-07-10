@@ -8,7 +8,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 export default function Dashboard() {
   /* --- navigation data & route helpers ----------------------- */
   const nav = [
-    { to: '/', label: 'Dashboard' },
+    { to: '/dashboard', label: 'Dashboard' },
     { to: '/calendar', label: 'Calendar' },
     { to: '/trends', label: 'Trends' },
     { to: '/import', label: 'Import' },

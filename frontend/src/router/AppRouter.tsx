@@ -11,6 +11,7 @@ import Profile from '../pages/Profile'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import ThemeToggle from '../components/ThemeToggle'
+import AppNav from '../components/AppNav';
 
 // A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -65,7 +66,9 @@ export default function AppRouter() {
           path="profile"
           element={
             <ProtectedRoute>
-              <Profile />
+              <AppNav>  
+                <Profile />
+              </AppNav>
             </ProtectedRoute>
           }
         />

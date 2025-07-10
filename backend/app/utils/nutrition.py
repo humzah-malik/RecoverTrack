@@ -11,7 +11,7 @@ TDEE_MULTIPLIERS = {
 }
 
 # ~1100 kcal/week per kg → ≈157 kcal/day per kg
-CAL_ADJUST_PER_KG = 7700 / 7  
+CAL_ADJUST_PER_KG = 1100 / 7  
 
 # Macro grams per kg of bodyweight by goal
 MACROS_G_PER_KG = {

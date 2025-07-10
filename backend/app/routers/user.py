@@ -1,5 +1,5 @@
 # backend/app/routers/user.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from app.routers.auth import get_current_user
 from app.database import SessionLocal
@@ -66,3 +66,16 @@ def complete_onboarding(current_user=Depends(get_current_user), db: Session = De
     user: User = db.query(User).get(current_user.id)
     user.has_completed_onboarding = True
     db.commit()
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_profile(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    user: User = db.query(User).get(current_user.id)
+    if not user:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    # delete all user-related data first if you want to cascade manually:
+    db.delete(user)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

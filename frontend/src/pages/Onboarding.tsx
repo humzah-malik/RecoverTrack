@@ -34,8 +34,8 @@ export default function Onboarding() {
         <GoalStep
           defaultValues={profile || {}}
           onPrev={() => setStep(0)}
-          onNext={async ({ goal, activity_level }) => {
-            await updateProfile({ goal, activity_level });
+          onNext={async ({ goal, activity_level, weight_target, weight_target_unit }) => {
+            await updateProfile({ goal, activity_level, weight_target, weight_target_unit });
             setStep(2);
           }}
         />

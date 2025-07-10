@@ -1,78 +1,283 @@
-// src/pages/Profile.tsx
-import { useQuery } from "@tanstack/react-query";
-import { getMe } from "../api/users"; // assumes you already have a function to fetch /users/me
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getMe, updateProfile as updateProfileApi, deleteProfile as deleteProfileApi} from "../api/users"; 
+import type { UserOut } from "../api/auth";
+import { Avatar } from '../components/Avatar';
+import { CameraIcon } from '@heroicons/react/24/outline';
+import React, { useRef } from 'react'
+import { uploadAvatar } from '../api/uploadAvatar'
+import { useProfile } from '../hooks/useProfile'
 
 export default function Profile() {
-  const { data: user, isLoading, isError } = useQuery({
-    queryKey: ["me"],
+  const qc = useQueryClient();
+  const { profile, updateProfile } = useProfile()        // replace your existing useProfile
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  // banner message
+  const [success, setSuccess] = useState<string|null>(null);
+
+  const { data: user, isLoading, isError } = useQuery<UserOut>({
+    queryKey: ['me'],
     queryFn: getMe,
   });
+  const [form, setForm] = useState<Partial<UserOut>>({});
+  const updateMutation = useMutation({
+    mutationFn: updateProfileApi,
+    onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['me'] });
+            setSuccess("Profile updated successfully");
+            setTimeout(() => setSuccess(null), 3000);
+          },
+  });
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
-  if (isError || !user) return <div className="p-6 text-red-600">Failed to load user info.</div>;
+  const deleteMutation = useMutation({
+        mutationFn: () => deleteProfileApi(),
+        onSuccess: () => {
+          window.location.href = "/dashboard";
+        },
+    });
+
+  const onFieldChange = (field: keyof UserOut) => (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => {
+    const raw = e.target.value;
+    const val = e.target.type === 'number' ? +raw : raw;
+    setForm(prev => ({ ...prev, [field]: val }));
+  };
+
+  // 2) handler just for macros
+  const onMacroChange = (key:'protein'|'carbs'|'fat') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = +e.target.value;
+    setForm(prev => ({
+      ...prev,
+      macro_targets: {
+        ...(prev.macro_targets ?? user!.macro_targets)!,
+        [key]: isNaN(v)?0:v
+      }
+    }));
+  };
+
+  const onAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return
+    const url = await uploadAvatar(e.target.files[0])
+    // persist change everywhere
+    await updateProfile({ avatar_url: url })
+  }
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError || !user) return <div className="text-red-600">Failed to load user info.</div>;
+
+  // merge server data + local edits
+  const merged = { ...user, ...form };
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold mb-4">Your Profile</h1>
+    <>
+    {success && (
+       <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">
+         {success}
+       </div>
+     )}
+      {/* Header Card */}
+      <div className="bg-white border rounded-lg p-6 flex items-center gap-6">
+        <Avatar user={merged} size={6} className="w-16 h-16" />
+        <div>
+          <h2 className="text-xl font-semibold">{merged.first_name} {merged.last_name}</h2>
+          <p className="text-gray-500">{merged.email}</p>
+          <>
+            <button
+              onClick={onAvatarClick}
+              className="mt-2 p-1.5 bg-gray-100 rounded-md text-sm flex items-center gap-1"
+            >
+              <CameraIcon className="w-4 h-4"/> Edit
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={onFileChange}
+            />
+          </>
+        </div>
+      </div>
 
-      {/* Basic Info */}
-      <Section title="Basic Info">
-        <InfoRow label="First Name" value={user.first_name} />
-        <InfoRow label="Last Name" value={user.last_name}/>
-        <InfoRow label="Email" value={user.email} />
-        <InfoRow label="Age" value={user.age} />
-        <InfoRow label="Sex" value={user.sex} />
-        <InfoRow label="Height" value={user.height} />
-        <InfoRow label="Height Unit" value={user.height_unit} />
-        <InfoRow label="Weight" value={user.weight} />
-        <InfoRow label="Weight Unit" value={user.weight_unit} />
-      </Section>
+      {/* Personal Information */}
+      <section className="bg-white border rounded-lg p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium">Personal Information</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+          <label className="block text-sm font-medium">
+            Age
+          </label>
+            <input
+              type="number"
+              value={merged.age}
+              onChange={onFieldChange('age')}
+              className="mt-1 block w-full border rounded p-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Sex</label>
+            <select
+              value={merged.sex}
+              onChange={onFieldChange('sex')}
+              className="mt-1 block w-full border rounded p-2"
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Height</label>
+            <input
+              type="number"
+              value={merged.height}
+              onChange={onFieldChange('height')}
+              className="mt-1 block w-full border rounded p-2"
+            />
+          </div>
+          <div>
+             <label className="block text-sm font-medium">Unit</label>
+             <select
+               value={merged.height_unit}
+               onChange={onFieldChange('height_unit')}
+               className="mt-1 block w-full border rounded p-2"
+             >
+               <option value="cm">cm</option>
+               <option value="in">in</option>
+             </select>
+           </div>
+          <div>
+            <label className="block text-sm font-medium">
+              Weight
+            </label>
+            <input
+              type="number"
+              value={merged.weight}
+              onChange={onFieldChange('weight')}
+              className="mt-1 block w-full border rounded p-2"
+            />
+          </div>
+          <div>
+             <label className="block text-sm font-medium">Unit</label>
+             <select
+               value={merged.weight_unit}
+               onChange={onFieldChange('weight_unit')}
+               className="mt-1 block w-full border rounded p-2"
+             >
+               <option value="kg">kg</option>
+               <option value="lb">lb</option>
+             </select>
+           </div>
+        </div>
+      </section>
 
       {/* Goals */}
-      <Section title="Goals">
-        <InfoRow label="Goal" value={user.goal} />
-        <InfoRow label="Maintenance Calories" value={user.maintenance_calories} />
-        <InfoRow
-          label="Macro Targets"
-          value={
-            user.macro_targets
-              ? `Protein: ${user.macro_targets.protein}, Carbs: ${user.macro_targets.carbs}, Fat: ${user.macro_targets.fat}`
-              : "Not set"
-          }
-        />
-      </Section>
+      <section className="bg-white border rounded-lg p-6 space-y-4">
+        <h3 className="text-lg font-medium">Goals</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium">Goal</label>
+            <select
+              value={merged.goal}
+              onChange={onFieldChange('goal')}
+              className="mt-1 block w-full border rounded p-2"
+            >
+              <option value="gain muscle">Gain Muscle</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="fat loss">Fat Loss</option>
+              <option value="weight loss">Weight Loss</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Calories</label>
+            <input
+              type="number"
+              value={merged.maintenance_calories}
+              onChange={onFieldChange('maintenance_calories')}
+              className="mt-1 block w-full border rounded p-2"
+            />
+          </div>
 
-      {/* Buttons */}
-      <div className="space-x-4 pt-4">
-        <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          {/* Target Weight */}
+         <div className="sm:col-span-2 grid grid-cols-2 gap-4">
+           <div>
+             <label className="block text-sm font-medium">
+               Target Weight
+             </label>
+             <input
+               type="number"
+               value={merged.weight_target ?? ''}
+               onChange={onFieldChange('weight_target')}
+               className="mt-1 block w-full border rounded p-2"
+             />
+           </div>
+           <div>
+             <label className="block text-sm font-medium">Unit</label>
+             <select
+               value={merged.weight_target_unit}
+               onChange={onFieldChange('weight_target_unit')}
+               className="mt-1 block w-full border rounded p-2"
+             >
+               <option value="kg">kg</option>
+               <option value="lb">lb</option>
+             </select>
+           </div>
+         </div>
+
+            {/* Macro Targets */}
+            <div className="sm:col-span-2 grid grid-cols-3 gap-4">
+              {['protein','carbs','fat'].map(k => (
+                <div key={k}>
+                  <label className="block text-sm font-medium">
+                    {k[0].toUpperCase()+k.slice(1)}
+                  </label>
+                  <input
+                    type="number"
+                    value={(merged.macro_targets as any)[k]}
+                    onChange={onMacroChange(k as any)}
+                    className="mt-1 block w-full border rounded p-2"
+                  />
+                </div>
+              ))}
+            </div>
+        </div>
+      </section>
+
+      {/* Action Buttons */}
+      <div className="flex gap-4">
+        <button
+          onClick={() => updateMutation.mutate(form as any)}
+          disabled={updateMutation.isLoading}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Update Account
+        </button>
+        <button
+          onClick={() => {
+            setForm({}); // reset form
+            qc.invalidateQueries(['me']);
+            setSuccess(null);
+          }}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
           Reset Account
         </button>
-        <Link
-          to="/dashboard"
-          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black"
+        <button
+          onClick={() => {
+            if (confirm("Are you sure you want to delete your account?")) {
+              deleteMutation.mutate();
+            }
+          }}
+          disabled={deleteMutation.isLoading}
+          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         >
-          Back to Dashboard
-        </Link>
+          Delete Account
+        </button>
       </div>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <h2 className="text-xl font-semibold mb-2">{title}</h2>
-      <div className="space-y-1">{children}</div>
-    </div>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: any }) {
-  return (
-    <div className="flex justify-between border-b py-1">
-      <span className="font-medium">{label}</span>
-      <span className="text-gray-700">{value ?? "Not set"}</span>
-    </div>
+    </>
   );
 }

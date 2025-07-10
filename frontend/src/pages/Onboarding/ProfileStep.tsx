@@ -45,17 +45,19 @@ export function ProfileStep({ defaultValues, onNext }: Props) {
     defaultValues,
   });
 
-  const avatarFile = watch('avatar_file');
+  const avatarList = watch('avatar_file') as FileList | undefined;
   const [preview, setPreview] = useState<string|undefined>(undefined);
 
-  useEffect(() => {
-    if (avatarFile) {
-      const url = URL.createObjectURL(avatarFile);
-      setPreview(url);
-      return () => URL.revokeObjectURL(url);
-    }
-    setPreview(undefined);
-  }, [avatarFile]);
+    useEffect(() => {
+  // grab the first File out of the FileList, if any
+  const file = avatarList && avatarList.length > 0 ? avatarList[0] : undefined;
+  if (file) {
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }
+  setPreview(undefined);
+}, [avatarList]);
 
   const { updateProfile } = useProfile();
   const submit = async (data: ProfileData) => {

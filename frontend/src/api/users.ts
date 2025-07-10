@@ -35,4 +35,8 @@ export function markOnboardingComplete() {
   return api.post("/users/me/complete-onboarding");
 }
 
+export async function deleteProfile(): Promise<void> {
+  await api.delete("/users/me");
+}
+
 export { fetchProfile as getMe };

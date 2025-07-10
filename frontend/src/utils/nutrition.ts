@@ -6,11 +6,11 @@ export const TDEE_MULTIPLIERS: Record<string, number> = {
     high:     1.55,
   };
   
-  const CAL_ADJUST_PER_KG = 7700 / 7;
+  const CAL_ADJUST_PER_KG = 1100 / 7;
   
   export const MACROS_G_PER_KG: Record<string, Record<string, number>> = {
     'gain muscle':   { protein: 2.0, carbs: 4.0, fat: 1.0 },
-    maintenance:     { protein: 1.8, carbs: 3.0, fat: 0.8 },
+    'maintenance':     { protein: 1.8, carbs: 3.0, fat: 0.8 },
     'fat loss':      { protein: 2.2, carbs: 2.5, fat: 0.8 },
     'weight loss':   { protein: 2.0, carbs: 2.0, fat: 0.8 },
   };
