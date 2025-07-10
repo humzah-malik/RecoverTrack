@@ -117,6 +117,9 @@ class Token(BaseModel):
 class UserOut(BaseModel):
     id: str
     email: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    avatar_url: Optional[str]
     age: Optional[int]
     sex: Optional[str]
     height: Optional[float]
@@ -134,6 +137,9 @@ class UserOut(BaseModel):
     has_completed_onboarding: Optional[bool] = False
 
 class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    avatar_url: Optional[str] = None
     age: Optional[int] = None
     sex: Optional[str] = None
     height: Optional[float] = None

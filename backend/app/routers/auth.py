@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status, Header, File, UploadFile, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import User
@@ -7,7 +7,9 @@ from app.auth import (
     create_access_token, create_refresh_token,
     decode_token
 )
+from uuid import uuid4
 from app.schemas import UserCreate, UserLogin, UserOut, Token
+from app.supabase_admin import supabase_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -68,3 +70,25 @@ def refresh(authorization: str = Header(...)):
         "access_token": create_access_token(data["sub"]),
         "refresh_token": create_refresh_token(data["sub"])
     }
+
+
+@router.post("/avatar", summary="Upload user avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if not file.filename or "." not in file.filename:
+        raise HTTPException(400, "Invalid file")
+
+    contents = await file.read()
+    ext = file.filename.rsplit(".", 1)[-1]
+    path = f"{current_user.id}/{uuid4()}.{ext}"
+    
+    result = supabase_admin.storage.from_("avatars").upload(path, contents, {"upsert": False})
+    if hasattr(result, "error") and result.error:
+        raise HTTPException(500, f"Supabase upload error: {result.error.message}")
+    elif getattr(result, "status_code", 200) >= 400:
+        raise HTTPException(500, f"Supabase upload failed: HTTP {result.status_code}")
+
+    public_url = supabase_admin.storage.from_("avatars").get_public_url(path)
+    return {"publicUrl": public_url}

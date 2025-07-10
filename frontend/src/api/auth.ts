@@ -3,6 +3,9 @@ import rawAuthClient from './rawAuthClient';   // ⬅️ no interceptors attache
 export interface UserOut {
   id: string;
   email: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  avatar_url?: string | null;
   age: number | null;
   sex: string | null;
   height: number | null;

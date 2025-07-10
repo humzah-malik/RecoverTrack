@@ -2,14 +2,10 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
-
-/* ─── helpers ─────────────────────────────────────────────── */
-function pastelFromName(name = '') {
-  if (!name) return '#E5E7EB'; 
-  const hue = (name.charCodeAt(0) * 37) % 360;
-  return `hsl(${hue} 70% 90%)`;
-}
+import React, { useState, useEffect } from 'react';
+import { uploadAvatar } from '../../api/uploadAvatar';
+import { useProfile } from '../../hooks/useProfile';
+import { pastelFromName } from '../../utils/pastelFromName';
 
 /* ─── schema ──────────────────────────────────────────────── */
 const schema = z.object({
@@ -49,6 +45,31 @@ export function ProfileStep({ defaultValues, onNext }: Props) {
     defaultValues,
   });
 
+  const avatarFile = watch('avatar_file');
+  const [preview, setPreview] = useState<string|undefined>(undefined);
+
+  useEffect(() => {
+    if (avatarFile) {
+      const url = URL.createObjectURL(avatarFile);
+      setPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPreview(undefined);
+  }, [avatarFile]);
+
+  const { updateProfile } = useProfile();
+  const submit = async (data: ProfileData) => {
+      let avatar_url: string | undefined;
+    
+      if (data.avatar_file) {
+        avatar_url = await uploadAvatar(data.avatar_file);
+      }
+    
+      const { avatar_file, _, ...rest } = data;
+      await updateProfile({ ...rest, avatar_url });
+      onNext({} as any);
+    };
+
   const firstName = watch('first_name');
 
   return (
@@ -66,7 +87,7 @@ export function ProfileStep({ defaultValues, onNext }: Props) {
 
       {/* card ---------------------------------------------------- */}
       <form
-        onSubmit={handleSubmit(onNext)}
+        onSubmit={handleSubmit(submit)}
         className="space-y-6 bg-white/80 backdrop-blur border border-gray-200 rounded-lg p-8 shadow-sm"
       >
         {/* heading */}
@@ -82,7 +103,15 @@ export function ProfileStep({ defaultValues, onNext }: Props) {
             className="relative w-24 h-24 rounded-full flex items-center justify-center text-3xl font-semibold text-gray-700"
             style={{ background: pastelFromName(firstName) }}
           >
-            {firstName?.charAt(0)?.toUpperCase() || 'A'}
+            {preview ? (
+            <img
+                src={preview}
+                alt="avatar preview"
+                className="w-full h-full rounded-full object-cover"
+            />
+            ) : (
+            firstName?.charAt(0)?.toUpperCase() || 'A'
+            )}
 
             {/* edit overlay */}
             <label

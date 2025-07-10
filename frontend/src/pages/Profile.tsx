@@ -18,7 +18,8 @@ export default function Profile() {
 
       {/* Basic Info */}
       <Section title="Basic Info">
-        <InfoRow label="Username" value={user.username} />
+        <InfoRow label="First Name" value={user.first_name} />
+        <InfoRow label="Last Name" value={user.last_name}/>
         <InfoRow label="Email" value={user.email} />
         <InfoRow label="Age" value={user.age} />
         <InfoRow label="Sex" value={user.sex} />

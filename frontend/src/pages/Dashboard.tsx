@@ -1,5 +1,7 @@
 // src/pages/Dashboard.tsx
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Avatar } from '../components/Avatar';
+import { useProfile } from '../hooks/useProfile';
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -12,6 +14,7 @@ export default function Dashboard() {
     { to: '/import', label: 'Import' },
   ];
   const navigate = useNavigate();
+  const { profile, isLoading } = useProfile();
   const { pathname } = useLocation();
   const activeIdx = Math.max(0, nav.findIndex(n => pathname.startsWith(n.to)));
 
@@ -51,10 +54,11 @@ export default function Dashboard() {
 
               {/* avatar + burger */}
               <div className="flex items-center gap-4">
-                <button
-                  aria-label="User profile"
-                  className="hidden sm:inline-block w-9 h-9 rounded-full bg-gray-200 border border-gray-300"
-                />
+              {profile && (
+                  <Link to="/profile" aria-label="User profile" className="hidden sm:inline-block">
+                    <Avatar user={profile} size={2} className="w-8 h-8" />  {/* w-10 h-10 */}
+                  </Link>
+                )}
                 <Disclosure.Button className="sm:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400">
                   {open ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
                 </Disclosure.Button>
@@ -90,17 +94,23 @@ export default function Dashboard() {
       {/* ── MAIN ─────────────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Welcome box */}
-        <section className="bg-white border border-gray-200 rounded-lg p-6">
-          <h1 className="text-xl font-extrabold mb-1">Welcome, Humzah!</h1>
-          <p className="text-gray-500 text-sm mb-4">Let’s set your baseline</p>
+        <section className="bg-white border border-gray-200 rounded-lg p-6 flex items-center gap-6">
+          <div>
+            <h1 className="text-xl font-extrabold mb-1">
+              Welcome{profile ? `, ${profile.first_name || profile.email}!` : '!'}
+            </h1>
+            <div className="flex gap-4">
+              <p className="text-gray-500 text-sm mb-4">Let’s set your baseline</p>
 
-          <div className="flex gap-4">
-            <button className="bg-black text-white text-xs font-semibold px-4 py-2 rounded focus:ring-2 focus:ring-black">
-              Log Yesterday&#39;s Workout
-            </button>
-            <button className="border border-gray-300 text-xs px-4 py-2 rounded focus:ring-2 focus:ring-gray-300">
-              Skip (Rest Day)
-            </button>
+              <div className="flex gap-4">
+                <button className="bg-black text-white text-xs font-semibold px-4 py-2 rounded focus:ring-2 focus:ring-black">
+                  Log Yesterday&#39;s Workout
+                </button>
+                <button className="border border-gray-300 text-xs px-4 py-2 rounded focus:ring-2 focus:ring-gray-300">
+                  Skip (Rest Day)
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 

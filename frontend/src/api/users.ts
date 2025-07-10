@@ -5,6 +5,9 @@ import type { UserOut } from './auth';
 export interface UpdateProfilePayload {
   age?: number;
   sex?: string;
+  first_name?: string;
+  last_name?: string;
+  avatar_url?: string | null;
   height?: number;
   weight?: number;
   height_unit?: string;

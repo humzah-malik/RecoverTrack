@@ -13,19 +13,19 @@ export default function Onboarding() {
 
   if (isLoading) return <p>Loading…</p>;
 
+  function nullsToUndefined<T extends object>(obj: T): T {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, v === null ? undefined : v])
+    ) as T;
+  }
+
   return (
     <div className="max-w-lg mx-auto p-6 space-y-6">
       {/* ─── Step 0 : Profile ───────────────────────── */}
       {step === 0 && (
         <ProfileStep
-          defaultValues={profile || {}}
-          onNext={async (data) => {
-            try {
-              await updateProfile(data);
-            } finally {
-              setStep(1);
-            }
-          }}
+          defaultValues={nullsToUndefined(profile || {})}
+          onNext={() => setStep(1)}
         />
       )}
 
