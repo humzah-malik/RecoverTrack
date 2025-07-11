@@ -29,6 +29,27 @@ export default function Dashboard() {
   const activeIdx = Math.max(0, nav.findIndex(n => pathname.startsWith(n.to)));
   const { data: todayLog } = useDailyLog(today);
 
+  const hour = dayjs().hour();
+  const hasMorning = !!todayLog?.sleep_start;
+  const hasEvening = !!todayLog?.total_sets;
+
+  let bannerMessage = '';
+  if (hour < 11) {
+    bannerMessage = hasMorning
+      ? "You're off to a strong start today 💪"
+      : "Good morning! Let’s begin with your morning check-in 🌞";
+  } else if (hour < 17) {
+    bannerMessage = hasMorning
+      ? "Morning check-in done ✅"
+      : "Still need to log your morning check-in 📋";
+  } else if (hour < 23) {
+    bannerMessage = hasEvening
+      ? "Evening check-in complete! Great consistency 👏"
+      : "Time to reflect on today’s training and recovery 🌙";
+  } else {
+    bannerMessage = "Hope you had a good day — see you tomorrow 💤";
+  }
+
   /* ----------------------------------------------------------- */
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
@@ -110,21 +131,18 @@ export default function Dashboard() {
             <h1 className="text-xl font-extrabold mb-1">
               Welcome{profile ? `, ${profile.first_name || profile.email}!` : '!'}
             </h1>
-            <div className="flex gap-4">
-              <p className="text-gray-500 text-sm mb-4">Let’s set your baseline</p>
-
-              <div className="flex gap-4">
-                <button className="bg-black text-white text-xs font-semibold px-4 py-2 rounded focus:ring-2 focus:ring-black">
-                  Log Yesterday&#39;s Workout
-                </button>
-                <button className="border border-gray-300 text-xs px-4 py-2 rounded focus:ring-2 focus:ring-gray-300">
-                  Skip (Rest Day)
-                </button>
-              </div>
-            </div>
           </div>
         </section>
 
+        <section className="bg-white border border-gray-200 rounded-lg p-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-extrabold mb-1">
+              Welcome{profile ? `, ${profile.first_name || profile.email}!` : '!'}
+            </h1>
+            <p className="text-gray-600">{bannerMessage}</p>
+          </div>
+        </section>
+        
         {/* Recovery score */}
         <section aria-label="Recovery score" className="bg-white border border-gray-200 rounded-lg p-10 flex flex-col items-center text-center">
           <RecoveryScoreDisplay date={today} />

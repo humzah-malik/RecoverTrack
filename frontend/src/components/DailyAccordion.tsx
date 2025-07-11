@@ -157,7 +157,7 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
 
   /* ── render ────────────────────────────────────────────────────── */
   return (
-    <Disclosure defaultOpen>
+    <Disclosure>
       <Disclosure.Button
         className="w-full bg-white text-left px-4 py-3 border border-gray-200 rounded-lg font-semibold shadow-sm"
       >

@@ -27,8 +27,13 @@ export const Avatar = ({
   const bg = pastelFromName(user.first_name || '');
   return (
     <div
-    style={{ ...sizeStyle, background: bg }} className={clsx('rounded-full flex …', className)}>
-      {(user.first_name || 'A')[0].toUpperCase()}
+    style={{ ...sizeStyle, background: bg }}
+    className={clsx(
+    'rounded-full flex items-center justify-center text-white font-semibold text-xl',
+    className
+    )}
+    >
+    {(user.first_name || 'A')[0].toUpperCase()}
     </div>
   );
 };
