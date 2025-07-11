@@ -9,6 +9,8 @@ import { Avatar } from '../components/Avatar';
 import { useProfile } from '../hooks/useProfile';
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useDailyLog } from '../components/DailyLog';   // ← existing hook
+import MetricCard from '../components/MetricCard';
 
 export default function Dashboard() {
   /* --- navigation data & route helpers ----------------------- */
@@ -25,6 +27,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { pathname } = useLocation();
   const activeIdx = Math.max(0, nav.findIndex(n => pathname.startsWith(n.to)));
+  const { data: todayLog } = useDailyLog(today);
 
   /* ----------------------------------------------------------- */
   return (
@@ -148,24 +151,38 @@ export default function Dashboard() {
 
         {/* Metric cards */}
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            { icon: 'fas fa-moon', label: 'Sleep Quality' },
-            { icon: 'far fa-heart', label: 'Heart Rate Variability' },
-            { icon: 'fas fa-fire', label: 'Calories' },
-            { icon: 'fas fa-wave-square', label: 'Recovery Score' },
-            { icon: 'fas fa-brain', label: 'Stress Level' },
-            { icon: 'far fa-stopwatch', label: 'Activity Minutes' },
-          ].map(({ icon, label }) => (
-            <div
-              key={label}
-              className="bg-white border border-gray-200/70 rounded-xl p-8 flex flex-col items-center text-center text-gray-500 text-xs hover:shadow focus:shadow-md transition"
-            >
-              <i className={`${icon} text-lg mb-2`} />
-              <p className="font-semibold mb-1">No data yet</p>
-              <p>{label}</p>
-            </div>
-          ))}
-        </section>
+        <MetricCard
+          icon="fas fa-moon"
+          label="Sleep Quality"
+          value={todayLog?.sleep_quality}
+        />
+        <MetricCard
+          icon="far fa-heart"
+          label="Heart Rate Variability"
+          value={todayLog?.hrv}
+        />
+        <MetricCard
+          icon="fas fa-fire"
+          label="Calories"
+          value={todayLog?.calories}
+        />
+        <MetricCard
+          icon="fas fa-wave-square"
+          label="Recovery Score"
+          value={Math.round(todayLog?.recovery_rating ?? NaN) || undefined}
+        />
+        <MetricCard
+          icon="fas fa-brain"
+          label="Stress Level"
+          value={todayLog?.stress}
+        />
+        <MetricCard
+          icon="far fa-stopwatch"
+          label="Activity Minutes"
+          /* demo value – replace when you have real minutes */
+          value={todayLog?.total_sets ? todayLog.total_sets * 3 : undefined}
+        />
+      </section>
       </main>
     </div>
   );
