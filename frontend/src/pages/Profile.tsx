@@ -7,6 +7,7 @@ import { CameraIcon } from '@heroicons/react/24/outline';
 import React, { useRef } from 'react'
 import { uploadAvatar } from '../api/uploadAvatar'
 import { useProfile } from '../hooks/useProfile'
+import { useSplits } from '../hooks/useProfile';
 
 export default function Profile() {
   const qc = useQueryClient();
@@ -14,6 +15,7 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   // banner message
   const [success, setSuccess] = useState<string|null>(null);
+  const { data: splitOptions = [] } = useSplits();
 
   const { data: user, isLoading, isError } = useQuery<UserOut>({
     queryKey: ['me'],
@@ -172,6 +174,37 @@ export default function Profile() {
                <option value="lb">lb</option>
              </select>
            </div>
+
+           {/* Activity Level */}
+            <div>
+              <label className="block text-sm font-medium">Activity Level</label>
+              <select
+                value={merged.activity_level ?? ''}
+                onChange={onFieldChange('activity_level')}
+                className="mt-1 block w-full border rounded p-2"
+              >
+                <option value="">– select –</option>
+                <option value="Low">Low</option>
+                <option value="Moderate">Moderate</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Current Split</label>
+              <select
+                value={merged.split_template_id ?? ''}
+                onChange={onFieldChange('split_template_id')}
+                className="mt-1 block w-full border rounded p-2"
+              >
+                <option value="">– select –</option>
+                {splitOptions.map(split => (
+                  <option key={split.id} value={split.id}>
+                    {split.name}
+                  </option>
+                ))}
+              </select>
+            </div>
         </div>
       </section>
 

@@ -86,10 +86,22 @@ export default function Dashboard() {
 
               {/* avatar + burger */}
               <div className="flex items-center gap-4">
-              {profile && (
-                  <Link to="/profile" aria-label="User profile" className="hidden sm:inline-block">
-                    <Avatar user={profile} size={2} className="w-8 h-8" />  {/* w-10 h-10 */}
-                  </Link>
+                {profile && (
+                  <>
+                    <Link to="/profile" aria-label="User profile" className="hidden sm:inline-block">
+                      <Avatar user={profile} size={2} className="w-8 h-8" />
+                    </Link>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        navigate('/auth/login');
+                      }}
+                      className="text-sm text-gray-600 hover:text-black border border-gray-300 px-3 py-1 rounded"
+                    >
+                      Log Out
+                    </button>
+                  </>
                 )}
                 <Disclosure.Button className="sm:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400">
                   {open ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
@@ -126,14 +138,6 @@ export default function Dashboard() {
       {/* ── MAIN ─────────────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Welcome box */}
-        <section className="bg-white border border-gray-200 rounded-lg p-6 flex items-center gap-6">
-          <div>
-            <h1 className="text-xl font-extrabold mb-1">
-              Welcome{profile ? `, ${profile.first_name || profile.email}!` : '!'}
-            </h1>
-          </div>
-        </section>
-
         <section className="bg-white border border-gray-200 rounded-lg p-6 flex justify-between items-center">
           <div>
             <h1 className="text-xl font-extrabold mb-1">
@@ -142,7 +146,7 @@ export default function Dashboard() {
             <p className="text-gray-600">{bannerMessage}</p>
           </div>
         </section>
-        
+
         {/* Recovery score */}
         <section aria-label="Recovery score" className="bg-white border border-gray-200 rounded-lg p-10 flex flex-col items-center text-center">
           <RecoveryScoreDisplay date={today} />

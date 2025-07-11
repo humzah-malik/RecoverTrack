@@ -44,14 +44,27 @@ export default function AppNav({ children }: { children: ReactNode }) {
               </div>
               <div className="flex items-center gap-4">
                 {profile && (
-                  <Link to="/profile" aria-label="User profile" className="hidden sm:inline-block">
-                    <Avatar user={profile} size={2} className="w-8 h-8" />
-                  </Link>
+                  <>
+                    <Link to="/profile" aria-label="User profile" className="hidden sm:inline-block">
+                      <Avatar user={profile} size={2} className="w-8 h-8" />
+                    </Link>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        navigate('/auth/login');
+                      }}
+                      className="text-sm text-gray-600 hover:text-black border border-gray-300 px-3 py-1 rounded"
+                    >
+                      Log Out
+                    </button>
+                  </>
                 )}
                 <Disclosure.Button className="sm:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400">
                   {open ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
                 </Disclosure.Button>
               </div>
+
             </div>
             <Disclosure.Panel className="sm:hidden border-b border-gray-200">
               <ul className="space-y-1 px-4 pb-4 pt-2 text-sm font-medium">
