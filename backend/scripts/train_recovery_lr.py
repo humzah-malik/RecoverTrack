@@ -119,9 +119,23 @@ for epoch in range(1, 201):
 model.load_state_dict(best_state)
 model.eval()
 with torch.no_grad():
-    preds = model(torch.from_numpy(X_va_np).to(device)).cpu().numpy()
-preds = preds * y_std + y_mean
-print("MLP w user_bias → VAL MAE:", mean_absolute_error(yva, preds), "R²:", r2_score(yva, preds))
+    tr_pred_norm = model(torch.from_numpy(X_tr_np).to(device)).cpu().numpy()
+
+tr_pred = tr_pred_norm * y_std + y_mean
+df_tr["residual"] = ytr - tr_pred
+
+# 2.  For now we only learn a bias (average residual).  Slope = 1.0.
+user_heads = (
+    df_tr.groupby("user_id")["residual"]
+         .mean()
+         .reset_index(name="bias")
+         .assign(slope=1.0)                    # placeholder column
+)
+
+# 3.  Save to CSV so the GH Action can upsert into Supabase
+heads_path = Path("user_recovery_heads.csv")
+user_heads.to_csv(heads_path, index=False)
+print(f"✨ wrote {len(user_heads)} per-user heads → {heads_path}")
 
 joblib.dump(preproc, Path("app/recovery_preproc_with_user_bias.joblib"))
 torch.save(best_state, Path("app/recovery_mlp_with_user_bias.pt"))

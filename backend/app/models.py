@@ -122,3 +122,11 @@ class DailyDigest(Base):
     alerts        = Column(JSON, nullable=False)   # list of advice strings
     micro_tips    = Column(JSON, nullable=False)   # list of tip strings
     created_at    = Column(DateTime, default=datetime.utcnow)
+
+class UserRecoveryHead(Base):
+    __tablename__ = "user_recovery_heads"
+
+    user_id   = Column(String, ForeignKey("users.id"), primary_key=True)
+    bias      = Column(Float,  nullable=False)      # scalar offset ˆε̄
+    slope     = Column(Float,  nullable=False, default=1.0)  # optional multiplicative term
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

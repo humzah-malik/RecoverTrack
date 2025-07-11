@@ -13,6 +13,7 @@ from app.routers.auth import get_current_user
 
 from app.utils.context import (
     predict_recovery,
+    apply_user_head,
     GLOBAL_MEAN,
     preprocessor,
     ALL_MUSCLES,
@@ -169,12 +170,15 @@ async def predict(
         print("──────────────────────────────────────────────────────────────\n")
 
     # 11) predict!
-    score = predict_recovery(df_pred)
+    raw_score = predict_recovery(df_pred)
+    score = apply_user_head(me.id, raw_score, db)
+
     if debug:
         # return the raw context and the DF that went to the preprocessor
         return {
-            "predicted_recovery_rating": score,
-            "ctx": ctx,
-            "model_input": df_pred.to_dict(orient="list"),
-        }
+        "predicted_recovery_rating": score,
+        "raw_global_score":          raw_score,
+        "ctx":                       ctx,
+        "model_input":               df_pred.to_dict(orient="list"),
+    }
     return RecoveryPredictResponse(predicted_recovery_rating=score)

@@ -67,6 +67,18 @@ def predict_recovery(df: pd.DataFrame) -> float:
     # convert back to the original 0–100 scale:
     return float(out_norm * Y_STD + Y_MEAN)
 
+def apply_user_head(user_id: str, raw_score: float, db: Session) -> float:
+    """
+    Adjust the global prediction with the user's learned bias / slope.
+    Falls back to raw_score if no row exists yet.
+    """
+    from app.models import UserRecoveryHead
+
+    head = db.query(UserRecoveryHead).filter_by(user_id=user_id).first()
+    if head:
+        return head.slope * raw_score + head.bias
+    return raw_score
+
 def build_daily_context(user: User, up_to: date, db: Session) -> Dict[str, Any]:
     """
     Build a context dict of daily metrics for the user on date `up_to`.

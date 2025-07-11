@@ -5,7 +5,7 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 8 * * 0'
   workflow_dispatch:
 
 jobs:
@@ -45,6 +45,14 @@ jobs:
       working-directory: backend
       run: |
         python scripts/train_recovery_lr.py
+
+    - name: Upsert per-user calibration heads
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      run: |
+        pip install supabase        # or supabase-py — same as in requirements
+        python backend/scripts/upsert_user_heads.py
 
     - name: Save model artifacts
       run: |
