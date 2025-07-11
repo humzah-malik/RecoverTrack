@@ -1,7 +1,8 @@
 # backend/app/schemas.py
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationError
-from typing import List, Optional, Dict, Any
-from datetime import date
+from typing import List, Optional, Dict, Any, Union
+from datetime import date as Date
+import datetime as dt
 
 class SessionSchema(BaseModel):
     id: str
@@ -25,7 +26,7 @@ class SplitTemplateOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class DailyLogBase(BaseModel):
-    date: date
+    date: Date
     trained: Optional[bool] = None
     # which session from the split template (inferred if trained)
     split: Optional[str] = None
@@ -208,7 +209,7 @@ class RuleTemplateOut(RuleTemplateBase):
 
 class DailyDigestOut(BaseModel):
     user_id: str
-    date: date
+    date: Date
     alerts: List[str]
     micro_tips: List[str]
     class Config:
@@ -217,7 +218,14 @@ class DailyDigestOut(BaseModel):
 
 class RecoveryPredictRequest(BaseModel):
     user_id: str
-    date: Optional[date] = None   # YYYY-MM-DD; if omitted, use today()
+    date: Optional[Union[Date, str]] = None   # accept both
+
+    # ── convert incoming ISO-string → datetime.date ──────────────
+    @field_validator("date", mode="before")
+    def _parse_date(cls, v):
+        if isinstance(v, str):
+            return Date.fromisoformat(v)      # e.g. "2025-07-11"
+        return v                              # already a date or None
 
 class RecoveryPredictResponse(BaseModel):
     predicted_recovery_rating: float

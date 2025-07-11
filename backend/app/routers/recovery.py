@@ -1,9 +1,10 @@
 from datetime import date
 import numpy as np
 import pandas as pd
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 
 from app.schemas import RecoveryPredictRequest, RecoveryPredictResponse
 from app.database import get_db
@@ -18,14 +19,58 @@ from app.utils.context import (
     build_daily_context,
 )
 
+from pydantic import ValidationError
+
 router = APIRouter(prefix="/recovery", tags=["recovery"])
 
+def resolve_template_info(db: Session, tpl_id: str, session_name: str):
+    """
+    Returns (split_type:str, muscle_groups:list[str])
+    """
+    from app.models import SplitTemplate, SplitSession
+
+    if not tpl_id or not session_name:
+        return "", []
+
+    tpl = db.query(SplitTemplate).filter_by(id=tpl_id).first()
+    if not tpl:
+        return "", []
+
+    sess = (
+        db.query(SplitSession)
+          .filter_by(template_id=tpl_id, name=session_name)
+          .first()
+    )
+    muscles = sess.muscle_groups if sess else []
+    return tpl.type, muscles
+
+
 @router.post("/predict", response_model=RecoveryPredictResponse)
-def predict(
-    req: RecoveryPredictRequest,
+async def predict(
+    request: Request,
+    # req: RecoveryPredictRequest,
+    debug: bool = Query(False, description="Include full context in response"),
     db: Session = Depends(get_db),
     me = Depends(get_current_user),
 ):
+    try:
+        # Manually extract and print the incoming JSON body
+        body = await request.json()
+        print("📥 Raw body received by /recovery/predict:", body)
+
+        # Validate the request body using your Pydantic schema
+        req = RecoveryPredictRequest(**body)
+
+    except ValidationError as ve:
+        print("❌ Validation Error in RecoveryPredictRequest:")
+        for err in ve.errors():
+            print(f"  → {err['loc']}: {err['msg']}")
+        return JSONResponse(status_code=422, content={"detail": ve.errors()})
+
+    except Exception as e:
+        print("🔥 Unexpected Error parsing request:", str(e))
+        return JSONResponse(status_code=400, content={"detail": str(e)})
+    
     # 1) guard
     if me.id != req.user_id:
         raise HTTPException(403, "can only predict your own recovery")
@@ -35,6 +80,14 @@ def predict(
 
     # 3) core day‐of metrics (fills zeros/defaults if no log exists)
     ctx = build_daily_context(me, up_to, db)
+
+    today_log = (
+    db.query(DailyLog)
+      .filter(DailyLog.user_id == me.id, DailyLog.date == up_to)
+      .first()
+    )
+    if today_log and today_log.water_intake_l is not None:
+        ctx["water_intake_l"] = today_log.water_intake_l
 
     # 4) compute 3-day rolling averages for soreness, stress, sleep_quality
     recent = (
@@ -52,9 +105,9 @@ def predict(
       "stress":     l.stress   or 0,
       "sleep_quality": l.sleep_quality or 0
     } for l in recent])
-    ctx["soreness_roll3"]       = df_hist["soreness"].mean()
-    ctx["stress_roll3"]         = df_hist["stress"].mean()
-    ctx["sleep_quality_roll3"]  = df_hist["sleep_quality"].mean()
+    ctx["soreness_roll3"]       = df_hist["soreness"].mean() if "soreness" in df_hist else 0.0
+    ctx["stress_roll3"]         = df_hist["stress"].mean() if "stress" in df_hist else 0.0
+    ctx["sleep_quality_roll3"]  = df_hist["sleep_quality"].mean() if "sleep_quality" in df_hist else 0.0
 
     # 5) day-of-week & month features
     dow = up_to.weekday()
@@ -69,21 +122,31 @@ def predict(
     ctx["height"] = me.height or 0
     ctx["weight"] = me.weight or 0
 
+    tpl_type, muscles = resolve_template_info(
+    db,
+    ctx.get("split_template_id") or getattr(
+        db.query(DailyLog)
+           .filter(DailyLog.user_id==me.id, DailyLog.date==up_to)
+           .first(), "split_template_id", None),
+    ctx.get("split")
+    )
+
+    ctx["split_type"] = tpl_type or ""
+
     # 7) categorical features
     ctx["sex"]            = me.sex or ""
     ctx["goal"]           = me.goal or ""
     ctx["activity_level"] = me.activity_level or ""
-    ctx["split_type"]     = ctx.get("split", "")   # from daily context
 
-    # 8) muscle‐group flags
-    #    if you stored muscle_groups on the DailyLog, pull them here;
-    #    otherwise load today’s SplitSession via ctx["split"] → template → sessions
-    muscles = getattr(db.query(DailyLog).filter(
-      DailyLog.user_id==me.id,
-      DailyLog.date==up_to
-    ).first(), "muscle_groups", []) or []
-    for m in ALL_MUSCLES:       # keep the same `all_muscles` list you used at train time
-      ctx[m] = 1 if m in muscles else 0
+    # 8) muscle-group flags
+    # ---------------------------------------------------------
+    log_muscles = getattr(today_log, "muscle_groups", None)
+
+    # 2) if the log didn’t store them, fall back to the session's muscles
+    muscles_today = log_muscles or muscles        # ‘muscles’ came from resolve_template_info
+
+    for m in ALL_MUSCLES:                         # list used during model training
+        ctx[m] = 1 if muscles_today and m in muscles_today else 0
 
     # 9) user_bias fallback
     avg = db.query(func.avg(DailyLog.recovery_rating)) \
@@ -96,6 +159,22 @@ def predict(
     row = [ctx.get(c, 0) for c in in_cols]
     df_pred = pd.DataFrame([row], columns=in_cols)
 
+    if debug:
+        print("\n─── RECOVERY DEBUG ─────────────────────────────────────────")
+        print("Context (ctx) key → value")
+        for k, v in ctx.items():
+            print(f"  {k}: {v}")
+        print("\nModel input (df_pred):")
+        print(df_pred.to_string(index=False))
+        print("──────────────────────────────────────────────────────────────\n")
+
     # 11) predict!
     score = predict_recovery(df_pred)
+    if debug:
+        # return the raw context and the DF that went to the preprocessor
+        return {
+            "predicted_recovery_rating": score,
+            "ctx": ctx,
+            "model_input": df_pred.to_dict(orient="list"),
+        }
     return RecoveryPredictResponse(predicted_recovery_rating=score)

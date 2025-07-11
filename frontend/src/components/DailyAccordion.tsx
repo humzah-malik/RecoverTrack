@@ -1,7 +1,9 @@
 // src/components/DailyAccordion.tsx
 import React, { useState, useEffect } from 'react'
+import { useSplitSessions } from '../hooks/useSplitSessions'
 import { Disclosure } from '@headlessui/react'
 import { useDailyLog, useUpsertDailyLog } from './DailyLog'
+import { useProfile } from '../hooks/useProfile'
 
 interface Props {
   date: string
@@ -14,6 +16,9 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
   /* ── data + mutation ───────────────────────────────────────────── */
   const { data, isLoading } = useDailyLog(date)
   const upsert = useUpsertDailyLog()
+  const { data: sessions = [] } = useSplitSessions()
+  const { profile } = useProfile()
+  console.log('[DailyAccordion] sessions for dropdown:', sessions)
 
   /* ── form state (blank defaults) ───────────────────────────────── */
   const emptyState = {
@@ -30,7 +35,7 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
     protein: '', carbs: '', fat: '',  // NEW (macros)
 
     // If you later reinstate split, leave it blank here
-    // split: '',
+    split: '',
   }
   const [form, setForm] = useState(emptyState)
 
@@ -58,7 +63,7 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
       protein: data.macros?.protein != null ? String(data.macros.protein) : '',
       carbs:   data.macros?.carbs   != null ? String(data.macros.carbs)   : '',
       fat:     data.macros?.fat     != null ? String(data.macros.fat)     : '',
-      // split:   data.split ?? '',
+      split:   data.split ?? '',
     })
   }, [data])
 
@@ -89,7 +94,11 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
       add('motivation',    form.motivation,    true)
       add('recovery_rating', form.recovery_rating, true) // optional
     } else {
-      payload.trained = form.trained               // always include
+      if (profile?.split_template_id) {
+        payload.split_template_id = profile.split_template_id
+      }
+      payload.trained = form.trained
+      add('split', form.split)
       add('total_sets',    form.total_sets,    true)
       add('failure_sets',  form.failure_sets,  true)
       add('total_rir',     form.total_rir,     true)
@@ -133,6 +142,7 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
 
   const eveningFields = [
     { name: 'trained',      label: 'Did you train?', type: 'checkbox' },
+    { name: 'split',        label: 'Session', type: 'select' },
     { name: 'total_sets',   label: 'Total Sets'      },
     { name: 'failure_sets', label: 'Failure Sets'    },
     { name: 'total_rir',    label: 'Total RIR'       },
@@ -170,8 +180,21 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
                     checked={form[f.name] as boolean}
                     onChange={handleChange}
                   />
-                ) : (
-                  <input
+                ) : f.type === 'select' ? (
+                                    <select
+                                      name={f.name}
+                                      value={form[f.name] as string}
+                                      onChange={handleChange}
+                                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                    >
+                                      <option value="">– choose –</option>
+                                      {sessions.map(s => (
+                                        <option key={s.id} value={s.name}>
+                             {s.name}
+                             </option>
+                         ))}
+                      </select>
+                  ) : (<input
                     type="text"
                     name={f.name}
                     value={form[f.name] as string}

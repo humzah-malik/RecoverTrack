@@ -5,6 +5,8 @@ import { useProfile } from '../hooks/useProfile'
 import { getRecovery } from '../api/recovery'
 import type { RecoveryResponse } from '../api/recovery'
 
+type RecoveryDebugResponse = RecoveryResponse & { ctx?: any; model_input?: any };
+
 interface Props {
   /** YYYY-MM-DD, used only for caching/refetch */
   date: string
@@ -13,13 +15,19 @@ interface Props {
 export default function RecoveryScoreDisplay({ date }: Props) {
   const { profile } = useProfile()
 
-  const { data, isLoading, isError } = useQuery<RecoveryResponse | null, Error>({
+  const { data, isLoading, isError } = useQuery<RecoveryDebugResponse | null, Error>({
     queryKey: ['recovery', date],
-    queryFn: () => getRecovery({ user_id: profile!.id }),
-    enabled: Boolean(profile),
+    queryFn: () => getRecovery({ user_id: profile!.id, date }),
+    enabled: Boolean(profile?.id && date),
     refetchOnWindowFocus: false,
     retry: false,
   })
+
+  if (import.meta.env.DEV && data?.ctx) {
+        console.groupCollapsed('🛠️ recovery debug ctx')
+        console.table(data.ctx)
+        console.groupEnd()
+      }
 
   if (isLoading || isError || data?.predicted_recovery_rating == null) {
     return (

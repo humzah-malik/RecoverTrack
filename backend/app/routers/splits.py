@@ -134,3 +134,26 @@ def clone_split(
 
     db.commit()
     return {"message": "Template cloned successfully", "template_id": cloned.id}
+
+@router.get("/{tpl_id}", response_model=SplitTemplateOut)
+def get_split(
+    tpl_id: str,
+    current_user = Depends(get_current_user),
+    db: Session   = Depends(get_db),
+):
+    tpl = db.get(SplitTemplate, tpl_id)
+    if not tpl:
+        raise HTTPException(404, "Template not found")
+
+    # Allow access if:
+    # • it’s a global preset
+    # • OR the user owns it
+    # • OR the user has adopted it
+    if not tpl.is_preset and tpl.user_id != current_user.id:
+        adopted = db.query(UserSplitTemplate).filter_by(
+            user_id=current_user.id, template_id=tpl_id
+        ).first()
+        if not adopted:
+            raise HTTPException(403, "Forbidden")
+
+    return tpl

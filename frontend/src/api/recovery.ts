@@ -10,14 +10,22 @@ export interface RecoveryResponse {
   predicted_recovery_rating: number
 }
 
-
-export async function getRecovery(req: RecoveryRequest): Promise<RecoveryResponse | null> {
-    try {
-      const { data } = await axios.post<RecoveryResponse>('/recovery/predict', req)
-      return data
-    } catch (err: any) {
-      // If the server still returns 422 (not enough inputs), just treat it as “no score yet”
-      if (err.response?.status === 422) return null
-      throw err
+export async function getRecovery(req: RecoveryRequest) {
+    if (!req.user_id) {
+      console.warn('[getRecovery] Missing user_id – skipping request');
+      return null;
     }
-  }
+  
+    console.log('[getRecovery] Final payload:', req)
+  
+    try {
+      const { data } = await axios.post('/recovery/predict?debug=true', req);
+      return data;
+    } catch (err: any) {
+      if (err.response?.status === 422) {
+        console.warn('[getRecovery] 422 error:', err.response.data);
+        return null;
+      }
+      throw err;
+    }
+  }  

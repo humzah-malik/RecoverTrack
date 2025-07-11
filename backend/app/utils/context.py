@@ -94,6 +94,7 @@ def build_daily_context(user: User, up_to: date, db: Session) -> Dict[str, Any]:
         "hrv": log.hrv or 0.0,
         "stress": log.stress or 0,
         "motivation": log.motivation or 0,
+        "water_intake_l": log.water_intake_l or 0.0,
     }
 
     # Compute sleep hours
