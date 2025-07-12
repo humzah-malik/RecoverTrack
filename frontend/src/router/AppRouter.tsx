@@ -7,6 +7,7 @@ import Onboarding from '../pages/Onboarding'
 import Dashboard from '../pages/Dashboard'
 import CalendarPage from '../pages/Calendar'
 import Trends from '../pages/Trends'
+import ImportPage from '../pages/Import'
 import Profile from '../pages/Profile'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
@@ -62,6 +63,18 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="import"
+          element={
+            <ProtectedRoute>
+            <AppNav> 
+              <ImportPage />
+            </AppNav>   
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="profile"
           element={

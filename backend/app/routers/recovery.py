@@ -102,7 +102,7 @@ async def predict(
     if today_log and today_log.water_intake_l is not None:
         ctx["water_intake_l"] = today_log.water_intake_l
 
-    minimal = ("sleep_start", "sleep_end", "sleep_quality", "resting_hr", "hrv")
+    minimal = ("sleep_start", "sleep_end", "sleep_quality")
 
     if not today_log or not any(getattr(today_log, f) for f in minimal):
         # *Either* return HTTP 422 so the frontend can show "--"

@@ -86,14 +86,16 @@ export default function FileDrop({ onDone }: Props) {
       )}
 
       {/* template link */}
-      <div className="flex justify-center mt-6">
-        <a
-          href="/templates/daily_log_template.xlsx"
-          className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700"
-        >
-          <i className="fas fa-download text-base" /> Download Template File
+      <div className="flex justify-center mt-6 space-x-6">
+        <a href="/templates/daily_log_template.xlsx"
+            className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700">
+            <i className="fas fa-download" /> XLSX Template
         </a>
-      </div>
+        <a href="/templates/daily_log_template.csv"
+            className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700">
+            <i className="fas fa-download" /> CSV Template
+        </a>
+        </div>
     </div>
   );
 }

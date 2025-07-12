@@ -1,0 +1,4 @@
+Date,Trained (Y/N),Sleep Start (HH:MM),Sleep End (HH:MM),Sleep Quality (1-5),Resting HR,HRV,Soreness (list),Stress (1-5),Motivation (1-5),Total Sets,Failure Sets,Total RIR,Calories,Macros (JSON),Split
+2025-07-12,Y,23:30,07:10,4,55,85,"[2,1,0,0]",2,4,20,2,25,2700,"{""protein"":170,""carbs"":320,""fat"":80}",Push
+2025-07-13,N,23:45,07:20,3,57,82,"[3,2,1,0]",3,3,,,,2500,"{""protein"":160,""carbs"":300,""fat"":75}",Rest
+2025-07-14,Y,00:05,08:00,5,54,88,"[1,0,0,0]",1,5,18,1,22,2900,"{""protein"":180,""carbs"":330,""fat"":85}",Pull

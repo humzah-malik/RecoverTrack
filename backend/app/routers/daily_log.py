@@ -21,6 +21,27 @@ def get_db():
     finally:
         db.close()
 
+FRIENDLY_HDRS = {
+    "Date":                     "date",
+    "Trained (Y/N)":            "trained",
+    "Sleep Start (HH:MM)":      "sleep_start",
+    "Sleep End (HH:MM)":        "sleep_end",
+    "Sleep Quality (1-5)":      "sleep_quality",
+    "Resting HR":               "resting_hr",
+    "HRV":                      "hrv",
+    "Soreness (list)":          "soreness",
+    "Stress (1-5)":             "stress",
+    "Motivation (1-5)":         "motivation",
+    "Total Sets":               "total_sets",
+    "Failure Sets":             "failure_sets",
+    "Total RIR":                "total_rir",
+    "Calories":                 "calories",
+    "Macros (JSON)":            "macros",
+    "Water Intake (L)":         "water_intake_l",
+    "Split":                    "split",
+    "Recovery Rating (0-100)":  "recovery_rating",
+}
+
 @router.post("/daily-log", response_model=DailyLogOut, status_code=201)
 def upsert_daily_log(
     payload: DailyLogCreate,
@@ -127,6 +148,8 @@ async def bulk_import_logs(
         else:
             raise HTTPException(status_code=400, detail="Unsupported file type")
 
+        df.rename(columns=lambda c: FRIENDLY_HDRS.get(c.strip(), c.strip()), inplace=True)    
+
         df.fillna(value=pd.NA, inplace=True)
 
         for _, row in df.iterrows():
@@ -152,7 +175,9 @@ async def bulk_import_logs(
                     "total_rir": row.get("total_rir"),
                     "calories": row.get("calories"),
                     "macros": eval(row.get("macros")) if row.get("macros") else None,
+                    "water_intake_l": row.get("water_intake_l"),
                     "split": row.get("split"),
+                    "recovery_rating": row.get("recovery_rating"),
                     # "workout": row.get("workout")
                 }
 
