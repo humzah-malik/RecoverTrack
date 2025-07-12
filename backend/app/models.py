@@ -1,7 +1,7 @@
 # backend/app/models.py
 
 from sqlalchemy import (
-    Column, String, Integer, Float, Date, JSON, DateTime, Boolean, ForeignKey
+    Column, String, Integer, Float, Date, JSON, DateTime, Boolean, ForeignKey, TIMESTAMP
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -11,6 +11,7 @@ from datetime import datetime
 import uuid
 from passlib.context import CryptContext
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Index
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -130,3 +131,22 @@ class UserRecoveryHead(Base):
     bias      = Column(Float,  nullable=False)      # scalar offset ˆε̄
     slope     = Column(Float,  nullable=False, default=1.0)  # optional multiplicative term
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# app/models.py
+class RecoveryPrediction(Base):
+    __tablename__ = "recovery_predictions"
+    user_id = Column(
+        String,
+        ForeignKey("users.id", ondelete="CASCADE"),   # ← 1️⃣ cascade
+        primary_key=True,
+    )
+    date  = Column(Date, primary_key=True)
+    score = Column(Float, nullable=False)
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    __table_args__ = (
+        Index("idx_recovery_predictions_user_date", "user_id", "date"),
+    )

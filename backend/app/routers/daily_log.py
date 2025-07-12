@@ -4,11 +4,13 @@ from datetime import date, datetime, timedelta
 from typing import List
 import pandas as pd
 from io import BytesIO
-
 from app.database import SessionLocal
 from app.models import DailyLog, SplitSession, SplitTemplate
 from app.schemas import DailyLogCreate, DailyLogOut
 from app.routers.auth import get_current_user
+from app.routers.recovery import predict as predict_recovery_score
+from fastapi import Request
+import json
 
 router = APIRouter(tags=["daily-log"])
 
@@ -111,7 +113,7 @@ def get_history(
     return logs
 
 @router.post("/daily-log/bulk-import", status_code=201)
-def bulk_import_logs(
+async def bulk_import_logs(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -166,10 +168,26 @@ def bulk_import_logs(
                     new_log = DailyLog(user_id=current_user.id, **log_data)
                     db.add(new_log)
 
+                db.flush()
+
+                fake_req = Request(scope={"type": "http"})
+                fake_req._body = json.dumps({          # monkey-patch body
+                    "user_id": str(current_user.id),
+                    "date":    str(date_value)
+                }).encode()
+
+                await predict_recovery_score(
+                    request=fake_req,
+                    debug=False,
+                    db=db,
+                    me=current_user
+                )
+
             except Exception as e:
                 raise HTTPException(status_code=400, detail=f"Error processing row: {e}")
 
         db.commit()
+
         return {"message": "Bulk import successful"}
 
     except Exception as e:

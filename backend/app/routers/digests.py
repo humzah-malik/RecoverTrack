@@ -13,6 +13,7 @@ from app.utils.context import (
 )
 from app.utils.rules   import evaluate_rules_from_context
 from app.utils.digests import compute_daily_micro_tips
+from app.utils.digests import is_empty_ctx
 
 router = APIRouter(prefix="/digests", tags=["digests"])
 
@@ -32,6 +33,9 @@ def daily_digest(
     target = day or date.today()
 
     ctx = build_daily_context(current_user, target, db)
+
+    if is_empty_ctx(ctx):
+        return {"date": target, "alerts": [], "micro_tips": []}
 
     rules = evaluate_rules_from_context(
         ctx, timeframe="daily", user=current_user, db=db

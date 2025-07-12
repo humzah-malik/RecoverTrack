@@ -18,6 +18,21 @@ OPERATOR_MAP = {
     "!=": operator.ne,
 }
 
+def _safe(val: Any) -> Optional[float]:
+    """
+    Treat “missing” or sentinel values as None so the rule is skipped.
+    * None / ''  → None
+    * 0 or 0.0   → None     (all your percents + hours default to 0)
+    * NaN        → None
+    """
+    try:
+        import math
+        if val in (None, '', 0, 0.0) or isinstance(val, float) and math.isnan(val):
+            return None
+    except Exception:
+        pass
+    return val
+
 class RuleTemplate(Base):
     __tablename__ = "rule_templates"
     id          = Column(String, primary_key=True)
@@ -58,7 +73,7 @@ def evaluate_rules_from_context(
             field    = cond["field"]
             op_str   = cond["operator"]
             target   = cond["value"]
-            actual   = ctx.get(field)
+            actual   = _safe(ctx.get(field))
 
             op_func = OPERATOR_MAP.get(op_str)
             if op_func is None:
@@ -66,8 +81,12 @@ def evaluate_rules_from_context(
                 break
 
             # If field is missing in ctx, treat as failure
+            # Skip the rule if the metric is missing / “0”
+            if actual is None:
+                passed = False
+                break
             try:
-                if actual is None or not op_func(actual, target):
+                if not op_func(actual, target):
                     passed = False
                     break
             except Exception:

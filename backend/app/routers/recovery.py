@@ -1,12 +1,13 @@
 from datetime import date
+import os
+from supabase import create_client, Client
 import numpy as np
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-
-from app.schemas import RecoveryPredictRequest, RecoveryPredictResponse
+from app.schemas import RecoveryPredictRequest, RecoveryPredictResponse, RecoveryPredictionOut
 from app.database import get_db
 from app.models import DailyLog
 from app.routers.auth import get_current_user
@@ -19,8 +20,18 @@ from app.utils.context import (
     ALL_MUSCLES,
     build_daily_context,
 )
-
 from pydantic import ValidationError
+from sqlalchemy.dialects.postgresql import insert
+from app.models import RecoveryPrediction
+from datetime import timedelta
+from app.models import User
+
+_url  = os.getenv("SUPABASE_URL")
+_key  = (
+     os.environ.get("SUPABASE_KEY")          # ← prefer server-side key if you add it
+     or os.environ["SUPABASE_SERVICE_KEY"]    # ← fall back to SERVICE key
+ )
+supabase: Client = create_client(_url, _key)
 
 router = APIRouter(prefix="/recovery", tags=["recovery"])
 
@@ -79,6 +90,7 @@ async def predict(
     # 2) pick a date
     up_to = req.date or date.today()
 
+
     # 3) core day‐of metrics (fills zeros/defaults if no log exists)
     ctx = build_daily_context(me, up_to, db)
 
@@ -89,6 +101,13 @@ async def predict(
     )
     if today_log and today_log.water_intake_l is not None:
         ctx["water_intake_l"] = today_log.water_intake_l
+
+    minimal = ("sleep_start", "sleep_end", "sleep_quality", "resting_hr", "hrv")
+
+    if not today_log or not any(getattr(today_log, f) for f in minimal):
+        # *Either* return HTTP 422 so the frontend can show "--"
+        # *or* return 200 with {"predicted_recovery_rating": None}
+        raise HTTPException(422, "No morning check-in yet")
 
     # 4) compute 3-day rolling averages for soreness, stress, sleep_quality
     recent = (
@@ -172,6 +191,16 @@ async def predict(
     # 11) predict!
     raw_score = predict_recovery(df_pred)
     score = apply_user_head(me.id, raw_score, db)
+    stmt = insert(RecoveryPrediction).values(
+        user_id=me.id,
+        date=up_to,
+        score=score
+    ).on_conflict_do_update(
+        index_elements=['user_id', 'date'],
+        set_=dict(score=score, created_at=func.now())
+    )
+    db.execute(stmt)
+    db.commit()
 
     if debug:
         # return the raw context and the DF that went to the preprocessor
@@ -182,3 +211,21 @@ async def predict(
         "model_input":               df_pred.to_dict(orient="list"),
     }
     return RecoveryPredictResponse(predicted_recovery_rating=score)
+
+@router.get("/history", response_model=list[RecoveryPredictionOut])
+def recovery_history(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    me: User = Depends(get_current_user),
+):
+    since = date.today() - timedelta(days=days-1)
+    rows = (
+        db.query(RecoveryPrediction)
+          .filter(
+              RecoveryPrediction.user_id == me.id,
+              RecoveryPrediction.date >= since
+          )
+          .order_by(RecoveryPrediction.date)
+          .all()
+    )
+    return rows

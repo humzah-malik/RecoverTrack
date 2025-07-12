@@ -231,3 +231,11 @@ class RecoveryPredictResponse(BaseModel):
     predicted_recovery_rating: float
 
     model_config = ConfigDict(from_attributes=True)
+
+class RecoveryPredictionOut(BaseModel):
+    user_id: str
+    date:    Date
+    score:   float
+
+    class Config:
+        orm_mode = True

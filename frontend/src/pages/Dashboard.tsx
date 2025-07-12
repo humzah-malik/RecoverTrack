@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';                                  // for computing dates
 import { useQueryClient } from '@tanstack/react-query';     // for invalidating recovery on save
+import { useQuery } from '@tanstack/react-query';
 
 import DailyAccordion from '../components/DailyAccordion';  // your new accordion component
 import RecoveryScoreDisplay from '../components/RecoveryScoreDisplay';
@@ -14,6 +15,7 @@ import MetricCard from '../components/MetricCard';
 import { useDailyDigest } from '../hooks/useDailyDigest';
 import { DigestAlerts }    from '../components/DigestAlerts';
 import { DigestTips }      from '../components/DigestTips';
+import { getRecovery } from '../api/recovery';
 
 export default function Dashboard() {
   /* --- navigation data & route helpers ----------------------- */
@@ -24,28 +26,43 @@ export default function Dashboard() {
     { to: '/import', label: 'Import' },
   ];
   const navigate = useNavigate();
-  const { profile, isLoading } = useProfile();
+  const { profile } = useProfile();
   const today = dayjs().format('YYYY-MM-DD');
+  const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  const yesterday = dayjs().subtract(1,'day').format('YYYY-MM-DD');
   //const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
   const queryClient = useQueryClient();
   const { pathname } = useLocation();
   const activeIdx = Math.max(0, nav.findIndex(n => pathname.startsWith(n.to)));
   const { data: todayLog } = useDailyLog(today);
+  const { data: tomorrowLog }  = useDailyLog(tomorrow);   // D+1 (evening values after 17h)
+  const { data: yesterdayLog } = useDailyLog(yesterday);
 
   const hour = dayjs().hour();
-  const hasMorning = 
-    !!todayLog?.sleep_start && !!todayLog?.sleep_end
-  const hasEvening =
-    todayLog?.trained === true &&
-  (todayLog?.total_sets ?? 0) > 0 &&
-  (todayLog?.calories   ?? 0) > 0 &&
-  (todayLog?.water_intake_l ?? 0) > 0
+  // morning is stored on today’s row
+  const hasMorning = Boolean(todayLog?.sleep_start && todayLog?.sleep_end);
+
+  // evening is stored on tomorrow’s row *once the user fills it*
+  const hasEvening = Boolean(
+    tomorrowLog?.trained === true &&
+    (tomorrowLog?.total_sets     ?? 0) > 0 &&
+    (tomorrowLog?.calories       ?? 0) > 0 &&
+    (tomorrowLog?.water_intake_l ?? 0) > 0
+  );
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['recovery', today],
+    queryFn: () => getRecovery({ user_id: profile!.id, date: today }),
+    enabled: profile?.id && hasMorning,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   let bannerMessage = '';
   if (hour < 11) {
     bannerMessage = hasMorning
       ? "You're off to a strong start today 💪"
-      : "Good morning! Let’s begin with your morning check-in 🌞";
+      : "Good morning! Fill in your sleep & wake-up details to see today’s recovery score.";
   } else if (hour < 17) {
     bannerMessage = hasMorning
       ? "Morning check-in done ✅"
@@ -165,10 +182,10 @@ export default function Dashboard() {
         {/* Daily logs */}
         <section aria-label="Daily logs" className="space-y-6">
           <DailyAccordion
-            date={today}
+            date={yesterday}
             type="evening"
             label="Yesterday’s Evening Check-In"
-            onSave={() => queryClient.invalidateQueries({ queryKey: ['daily-log', today] })}
+            disabled           // always read-only
           />
           <DailyAccordion
             date={today}
@@ -176,7 +193,18 @@ export default function Dashboard() {
             label="Today’s Morning Check-In"
             onSave={() => {
               queryClient.invalidateQueries({ queryKey: ['daily-log', today] });
-              queryClient.invalidateQueries({ queryKey: ['recovery', today] });
+              queryClient.invalidateQueries({ queryKey: ['recovery',   today] });
+              queryClient.invalidateQueries({ queryKey: ['digests'] });
+            }}
+          />
+          <DailyAccordion
+            date={tomorrow}
+            type="evening"
+            label="Tonight’s Evening Check-In"
+            disabled={dayjs().hour() < 17}
+            onSave={() => {
+              queryClient.invalidateQueries({ queryKey: ['daily-log', tomorrow] });
+              queryClient.invalidateQueries({ queryKey: ['digests'] });   // show tips immediately
             }}
           />
         </section>

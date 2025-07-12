@@ -9,10 +9,11 @@ interface Props {
   date: string
   type: 'morning' | 'evening'
   label: string
+  disabled?: boolean
   onSave?: () => void
 }
 
-export default function DailyAccordion({ date, type, label, onSave }: Props) {
+export default function DailyAccordion({ date, type, label, disabled = false, onSave }: Props) {
   /* ── data + mutation ───────────────────────────────────────────── */
   const { data, isLoading } = useDailyLog(date)
   const upsert = useUpsertDailyLog()
@@ -168,7 +169,11 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
   return (
     <Disclosure>
       <Disclosure.Button
-        className="w-full bg-white text-left px-4 py-3 border border-gray-200 rounded-lg font-semibold shadow-sm"
+        className={[
+                "w-full bg-white text-left px-4 py-3 border border-gray-200 rounded-lg font-semibold shadow-sm",
+                disabled && "opacity-50 cursor-not-allowed"
+              ].join(" ")}
+              disabled={disabled}
       >
         {label}
       </Disclosure.Button>
