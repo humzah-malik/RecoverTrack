@@ -8,6 +8,7 @@ import React, { useRef } from 'react'
 import { uploadAvatar } from '../api/uploadAvatar'
 import { useProfile } from '../hooks/useProfile'
 import { useSplits } from '../hooks/useProfile';
+import { useActivityLevels } from '../hooks/useActivityLevels';
 
 export default function Profile() {
   const qc = useQueryClient();
@@ -16,6 +17,7 @@ export default function Profile() {
   // banner message
   const [success, setSuccess] = useState<string|null>(null);
   const { data: splitOptions = [] } = useSplits();
+  const { data: activityLevels = [] } = useActivityLevels();
 
   const { data: user, isLoading, isError } = useQuery<UserOut>({
     queryKey: ['me'],
@@ -176,19 +178,21 @@ export default function Profile() {
            </div>
 
            {/* Activity Level */}
-            <div>
-              <label className="block text-sm font-medium">Activity Level</label>
-              <select
-                value={merged.activity_level ?? ''}
-                onChange={onFieldChange('activity_level')}
-                className="mt-1 block w-full border rounded p-2"
-              >
-                <option value="">– select –</option>
-                <option value="Low">Low</option>
-                <option value="Moderate">Moderate</option>
-                <option value="High">High</option>
-              </select>
-            </div>
+           <div>
+            <label className="block text-sm font-medium">Activity Level</label>
+            <select
+              value={merged.activity_level ?? ''}
+              onChange={onFieldChange('activity_level')}
+              className="mt-1 block w-full border rounded p-2"
+            >
+              <option value="">– select –</option>
+              {activityLevels.map(level => (
+                <option key={level} value={level}>
+                  {level[0].toUpperCase() + level.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
 
             <div>
               <label className="block text-sm font-medium">Current Split</label>
@@ -288,16 +292,6 @@ export default function Profile() {
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Update Account
-        </button>
-        <button
-          onClick={() => {
-            setForm({}); // reset form
-            qc.invalidateQueries(['me']);
-            setSuccess(null);
-          }}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          Reset Account
         </button>
         <button
           onClick={() => {

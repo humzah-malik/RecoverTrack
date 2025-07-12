@@ -30,8 +30,13 @@ export default function Dashboard() {
   const { data: todayLog } = useDailyLog(today);
 
   const hour = dayjs().hour();
-  const hasMorning = !!todayLog?.sleep_start;
-  const hasEvening = !!todayLog?.total_sets;
+  const hasMorning = 
+    !!todayLog?.sleep_start && !!todayLog?.sleep_end
+  const hasEvening =
+    todayLog?.trained === true &&
+  (todayLog?.total_sets ?? 0) > 0 &&
+  (todayLog?.calories   ?? 0) > 0 &&
+  (todayLog?.water_intake_l ?? 0) > 0
 
   let bannerMessage = '';
   if (hour < 11) {
@@ -44,8 +49,8 @@ export default function Dashboard() {
       : "Still need to log your morning check-in 📋";
   } else if (hour < 23) {
     bannerMessage = hasEvening
-      ? "Evening check-in complete! Great consistency 👏"
-      : "Time to reflect on today’s training and recovery 🌙";
+      ? "Evening check-in complete!"
+      : "Time to reflect on today’s training and recovery. Complete your evening check-in 🌙";
   } else {
     bannerMessage = "Hope you had a good day — see you tomorrow 💤";
   }

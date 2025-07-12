@@ -79,7 +79,16 @@ export default function DailyAccordion({ date, type, label, onSave }: Props) {
 
     /** helper → push only if value !== ''  */
     const add = (k: string, raw: string | boolean, numeric = false) => {
-      if (raw === '' || raw === null || raw === undefined) return
+      if (raw === '' || raw === null || raw === undefined) {
+        if (numeric) {
+          // send 0 for numeric fields
+          payload[k] = 0
+        } else {
+          // send null for non-numeric (so the DB will clear it)
+          payload[k] = null
+        }
+        return
+      }
       payload[k] = numeric ? Number(raw) : raw
     }
 
