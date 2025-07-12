@@ -87,7 +87,7 @@ def lookup_split_info(tpl_id: str, session_name: str):
             .single()
             .execute()
         )
-        tpl_cache[tpl_id] = rec.data["type"] if not rec.error else ""
+        tpl_cache[tpl_id] = (rec.data or {}).get("type", "")
     t_type = tpl_cache.get(tpl_id, "")
 
     # Session → muscle_groups  (list[str])
@@ -101,7 +101,7 @@ def lookup_split_info(tpl_id: str, session_name: str):
             .single()
             .execute()
         )
-        sess_cache[key] = rec.data["muscle_groups"] if not rec.error else []
+        sess_cache[key] = (rec.data or {}).get("muscle_groups", [])
     muscles = sess_cache[key]
 
     dbg(f"→ tpl {tpl_id} session {session_name!r} → type={t_type!r} muscles={muscles[:3]}…")
