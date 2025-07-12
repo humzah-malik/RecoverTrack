@@ -180,24 +180,20 @@ def normalize_log(row):
     # ---------- 4️⃣  macro percentages -------------------------------
     macros   = row.get("macros") or {}
     targets_from_log  = row.get("macro_targets") or {}            # almost always {}
-    targets_from_user = (user_cache.get(row["user_id"], {})       # may be {}
-                        .get("macro_targets") or {})
+    targets_from_user = (user_cache.get(row["user_id"], {}) or {}).get("macro_targets", {})
     targets = {**targets_from_user, **targets_from_log}           # log overrides user
 
-    # ❷ helper to avoid huge numbers / div-by-zero
+    # ❷ helper to avoid huge numbers / div-by-zero        
     def pct(actual, target):
-        try:
-            return (actual / target) * 100 if target else None
-        except ZeroDivisionError:
-            return None
+        return (actual / target) * 100 if actual not in (None, 0) and target else None
 
-    base["protein_pct"] = (macros.get("protein",0) / targets.get("protein",1)) * 100
-    base["carbs_pct"]   = (macros.get("carbs",  0) / targets.get("carbs",  1)) * 100
-    base["fat_pct"]     = (macros.get("fat",    0) / targets.get("fat",    1)) * 100
+    base["protein_pct"] = pct(macros.get("protein"), targets.get("protein"))
+    base["carbs_pct"]   = pct(macros.get("carbs"),   targets.get("carbs"))
+    base["fat_pct"]     = pct(macros.get("fat"),     targets.get("fat"))
 
     # ---------- 5️⃣  calorie deficit ---------------------------------
     cals  = row.get("calories")
-    maint = row.get("maintenance_calories", 2000)
+    maint = row.get("maintenance_calories") or u.get("maintenance_calories") or 2000
     if cals is not None:
         base["cal_deficit_pct"] = (cals - maint) / maint
 
@@ -215,6 +211,7 @@ new_df_flat = new_df_flat[df.columns]
 
 # Append to dataset
 df = pd.concat([df, new_df_flat], ignore_index=True)
+df.drop_duplicates(subset=["user_id", "date"], keep="last", inplace=True)
 dbg(f"💾 New total rows in CSV: {len(df):,}")
 df.to_csv(csv_path, index=False)
 print(f"Appended {len(new_df_flat)} new row(s) to recovery_dataset.csv")

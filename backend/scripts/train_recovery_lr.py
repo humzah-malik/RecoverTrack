@@ -14,6 +14,12 @@ from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
 df = pd.read_csv("recovery_dataset.csv", parse_dates=["date"])
+df.drop_duplicates(['user_id','date'], keep='last', inplace=True)
+df = df[
+    (df["protein_pct"].lt(300) | df["protein_pct"].isna()) &
+    (df["carbs_pct"].lt(300)   | df["carbs_pct"].isna()) &
+    (df["fat_pct"].lt(300)     | df["fat_pct"].isna())
+]
 df = df.dropna(subset=["recovery_rating"])
 df.sort_values(["user_id","date"], inplace=True)
 for f in ("soreness","stress","sleep_quality"):
