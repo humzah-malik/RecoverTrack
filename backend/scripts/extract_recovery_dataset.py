@@ -66,6 +66,8 @@ def main():
                     'date': day.isoformat(),
                     # derived features
                     'sleep_h':           ctx.get('sleep_h'),
+                    # hours you are short of a 7-hour night (0 if you hit 7 h or more)
+                    'sleep_deficit'    : max(0, 7.0 - (ctx.get('sleep_h') or 0)),
                     'sleep_quality':     ctx.get('sleep_quality'),
                     'resting_hr':        ctx.get('resting_hr'),
                     'hrv':               ctx.get('hrv'),

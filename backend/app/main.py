@@ -8,6 +8,7 @@ from app.routers import user, auth, daily_log, splits, rules_templates, recovery
 from app.database import engine, SessionLocal
 from app.routers.analytics import router as analytics_router
 from app.routers import user_meta
+from app.routers import digests
 from datetime import datetime
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -156,3 +157,4 @@ app.include_router(rules_templates.router)
 app.include_router(analytics_router)
 app.include_router(recovery.router)
 app.include_router(user_meta.router)
+app.include_router(digests.router)

@@ -11,6 +11,9 @@ import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useDailyLog } from '../components/DailyLog';   // ← existing hook
 import MetricCard from '../components/MetricCard';
+import { useDailyDigest } from '../hooks/useDailyDigest';
+import { DigestAlerts }    from '../components/DigestAlerts';
+import { DigestTips }      from '../components/DigestTips';
 
 export default function Dashboard() {
   /* --- navigation data & route helpers ----------------------- */
@@ -54,6 +57,8 @@ export default function Dashboard() {
   } else {
     bannerMessage = "Hope you had a good day — see you tomorrow 💤";
   }
+
+  const { data: digest } = useDailyDigest();
 
   /* ----------------------------------------------------------- */
   return (
@@ -210,6 +215,9 @@ export default function Dashboard() {
           value={todayLog?.total_sets ? todayLog.total_sets * 3 : undefined}
         />
       </section>
+
+      {digest && <DigestAlerts alerts={digest.alerts} />}
+      {digest && <DigestTips   tips={digest.micro_tips} />}
       </main>
     </div>
   );
