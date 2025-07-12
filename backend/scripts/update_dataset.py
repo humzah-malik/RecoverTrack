@@ -179,7 +179,17 @@ def normalize_log(row):
 
     # ---------- 4️⃣  macro percentages -------------------------------
     macros   = row.get("macros") or {}
-    targets  = row.get("macro_targets") or {"protein":1,"carbs":1,"fat":1}
+    targets_from_log  = row.get("macro_targets") or {}            # almost always {}
+    targets_from_user = (user_cache.get(row["user_id"], {})       # may be {}
+                        .get("macro_targets") or {})
+    targets = {**targets_from_user, **targets_from_log}           # log overrides user
+
+    # ❷ helper to avoid huge numbers / div-by-zero
+    def pct(actual, target):
+        try:
+            return (actual / target) * 100 if target else None
+        except ZeroDivisionError:
+            return None
 
     base["protein_pct"] = (macros.get("protein",0) / targets.get("protein",1)) * 100
     base["carbs_pct"]   = (macros.get("carbs",  0) / targets.get("carbs",  1)) * 100

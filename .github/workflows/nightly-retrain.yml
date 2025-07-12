@@ -39,7 +39,7 @@ jobs:
 
     - name: Update dataset
       run: |
-        python backend/scripts/update_dataset.py
+        python backend/scripts/update_dataset.py --debug
 
     - name: Train model
       working-directory: backend
