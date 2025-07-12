@@ -24,8 +24,8 @@ if not csv_path.exists():
     raise FileNotFoundError("recovery_dataset.csv not found in backend.")
 
 df = pd.read_csv(csv_path, parse_dates=["date"])
-dbg(f"🟢 recovery_dataset.csv has {len(df):,} rows (through {last_date.date()})")
 last_date = df["date"].max()
+dbg(f"🟢 recovery_dataset.csv has {len(df):,} rows (through {last_date.date()})")
 print(f"🕐 Last training date: {last_date.date()}")
 
 # Connect to Supabase
@@ -51,7 +51,7 @@ if not new_logs:
     exit(0)
 
 print(f"Found {len(new_logs)} new log(s)")
-("🔎 Example raw log:", pprint.pformat(new_logs[0])[:300] + " …")
+dbg("🔎 Example raw log:", pprint.pformat(new_logs[0])[:300] + " …")
 
 # Convert json to DataFrame
 new_df = pd.DataFrame(new_logs)
@@ -110,44 +110,44 @@ def lookup_split_info(tpl_id: str, session_name: str):
 
 # Flatten nested columns
 def normalize_log(row):
+    # ---------- 0️⃣  static skeleton (no duplicates) ------------------
     base = {
-        "user_id": row.get("user_id"),
-        "date": pd.to_datetime(row.get("date")),
-        "sleep_h": None,  # will compute below
-        "sleep_quality": row.get("sleep_quality"),
-        "resting_hr": row.get("resting_hr"),
-        "hrv": row.get("hrv"),
-        "trained": row.get("trained"),
-        "total_sets": row.get("total_sets"),
-        "failure_sets": row.get("failure_sets"),
-        "total_rir": row.get("total_rir"),
-        "cal_deficit_pct": None,  # will compute
-        "protein_pct": None,
-        "carbs_pct": None,
-        "fat_pct": None,
-        "stress": row.get("stress"),
-        "motivation": row.get("motivation"),
-        "soreness": row.get("soreness"),
-        "water_intake_l": row.get("water_intake_l"),
-        "split_type": row.get("split"),
-        "muscle_groups": json.dumps(row.get("muscle_groups", [])),  # keep as JSON string
-        "age": row.get("age", 25),      # fallback/defaults
-        "sex": row.get("sex", "Male"),
-        "height": row.get("height", 175),
-        "weight": row.get("weight", 75.0),
-        "goal": row.get("goal", "maintenance"),
-        "split_type": "",
+        "user_id":        row["user_id"],
+        "date":           pd.to_datetime(row["date"]),
+        "sleep_h":        None,          # ← we’ll fill below
+        "sleep_quality":  row.get("sleep_quality"),
+        "resting_hr":     row.get("resting_hr"),
+        "hrv":            row.get("hrv"),
+        "trained":        row.get("trained"),
+        "total_sets":     row.get("total_sets"),
+        "failure_sets":   row.get("failure_sets"),
+        "total_rir":      row.get("total_rir"),
+        # macros / energy – filled later
+        "cal_deficit_pct": None,
+        "protein_pct":     None,
+        "carbs_pct":       None,
+        "fat_pct":         None,
+        # subjective
+        "stress":        row.get("stress"),
+        "motivation":    row.get("motivation"),
+        "soreness":      row.get("soreness"),
+        "water_intake_l":row.get("water_intake_l"),
+        # placeholder; will be resolved by lookup_split_info
+        "split_type":    "",
         "muscle_groups": "[]",
-        "age": None,
-        "sex": None,
-        "height": None,
-        "weight": None,
-        "goal": None,
+        # static user attrs – will be patched from user_cache
+        "age":            None,
+        "sex":            None,
+        "height":         None,
+        "weight":         None,
+        "goal":           None,
         "activity_level": None,
+        # label
         "recovery_rating": row.get("recovery_rating"),
     }
 
-    u = user_cache.get(row.get("user_id"), {})
+    # ---------- 1️⃣  pull static user attributes ----------------------
+    u = user_cache.get(row["user_id"], {})
     base.update(
         age=u.get("age"),
         sex=u.get("sex"),
@@ -157,45 +157,42 @@ def normalize_log(row):
         activity_level=u.get("activity_level"),
     )
 
-    # --- split_type  &  muscle_groups -------------------------------
+    # ---------- 2️⃣  split type & muscle groups -----------------------
     tpl_id       = row.get("split_template_id")
-    session_name = row.get("split")            # e.g. "Legs & Shoulders"
+    session_name = row.get("split")                 # e.g. "Legs & Shoulders"
     t_type, mg   = lookup_split_info(tpl_id, session_name)
-    base["split_type"]    = t_type or ""       # "" safer than wrong value
-    base["muscle_groups"] = json.dumps(mg)     # keep schema same as before
+    base["split_type"]    = t_type or ""            # blank safer than wrong
+    base["muscle_groups"] = json.dumps(mg)
 
-
-    # Compute sleep hours
+    # ---------- 3️⃣  sleep hours --------------------------------------
     sh, eh = row.get("sleep_start"), row.get("sleep_end")
     try:
         if sh and eh:
             shh, shm = map(int, sh.split(":"))
             ehh, ehm = map(int, eh.split(":"))
-            mins = (ehh * 60 + ehm) - (shh * 60 + shm)
+            mins = (ehh*60+ehm) - (shh*60+shm)
             if mins < 0:
-                mins += 24 * 60
+                mins += 24*60
             base["sleep_h"] = mins / 60.0
-    except:
-        base["sleep_h"] = None
+    except Exception:
+        pass                                             # keep None
 
-    # Compute macro percentages
-    macros = row.get("macros", {})
-    targets = row.get("macro_targets", {"protein": 1, "carbs": 1, "fat": 1})
+    # ---------- 4️⃣  macro percentages -------------------------------
+    macros   = row.get("macros") or {}
+    targets  = row.get("macro_targets") or {"protein":1,"carbs":1,"fat":1}
 
-    try:
-        base["protein_pct"] = (macros.get("protein", 0) / targets.get("protein", 1)) * 100
-        base["carbs_pct"]   = (macros.get("carbs",   0) / targets.get("carbs", 1)) * 100
-        base["fat_pct"]     = (macros.get("fat",     0) / targets.get("fat", 1)) * 100
-    except:
-        base["protein_pct"] = base["carbs_pct"] = base["fat_pct"] = None
+    base["protein_pct"] = (macros.get("protein",0) / targets.get("protein",1)) * 100
+    base["carbs_pct"]   = (macros.get("carbs",  0) / targets.get("carbs",  1)) * 100
+    base["fat_pct"]     = (macros.get("fat",    0) / targets.get("fat",    1)) * 100
 
-    # Cal deficit percentage
-    cals = row.get("calories")
+    # ---------- 5️⃣  calorie deficit ---------------------------------
+    cals  = row.get("calories")
     maint = row.get("maintenance_calories", 2000)
     if cals is not None:
         base["cal_deficit_pct"] = (cals - maint) / maint
-    
-    dbg("📝 Row normalised:", {k: base[k] for k in ('user_id','date','split_type','muscle_groups','sleep_h','cal_deficit_pct')})
+
+    dbg("📝 Row normalised:", {k: base[k] for k in
+         ("user_id","date","split_type","muscle_groups","sleep_h","cal_deficit_pct")})
     return base
 
 # Apply normalization
