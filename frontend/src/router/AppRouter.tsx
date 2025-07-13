@@ -51,7 +51,9 @@ export default function AppRouter() {
           path="calendar"
           element={
             <ProtectedRoute>
-              <CalendarPage />
+            <AppNav> 
+            <CalendarPage />
+            </AppNav>
             </ProtectedRoute>
           }
         />

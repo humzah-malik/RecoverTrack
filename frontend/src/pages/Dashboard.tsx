@@ -175,10 +175,12 @@ export default function Dashboard() {
         </section>
 
         {/* Recovery score */}
-        <section aria-label="Recovery score" className="bg-white border border-gray-200 rounded-lg p-10 flex flex-col items-center text-center">
-          <RecoveryScoreDisplay date={today} />
-        </section>
-
+        <section
+                  aria-label="Recovery score"
+                  className="bg-white border border-gray-200 rounded-lg p-10 flex flex-col items-center text-center"
+                >
+                  <RecoveryScoreDisplay date={today} />
+                </section>
         {/* Daily logs */}
         <section aria-label="Daily logs" className="space-y-6">
           <DailyAccordion
@@ -188,14 +190,15 @@ export default function Dashboard() {
             disabled           // always read-only
           />
           <DailyAccordion
-            date={today}
-            type="morning"
-            label="Today’s Morning Check-In"
-            onSave={() => {
-              queryClient.invalidateQueries({ queryKey: ['daily-log', today] });
-              queryClient.invalidateQueries({ queryKey: ['recovery',   today] });
-              queryClient.invalidateQueries({ queryKey: ['digests'] });
-            }}
+               date={today}
+               type="morning"
+               label="Today’s Morning Check-In"
+               disabled={hour >= 17}
+               onSave={() => {
+                 queryClient.invalidateQueries({ queryKey: ['daily-log', today] });
+                 queryClient.invalidateQueries({ queryKey: ['recovery',   today] });
+                 queryClient.invalidateQueries({ queryKey: ['digests'] });
+               }}
           />
           <DailyAccordion
             date={tomorrow}
@@ -209,43 +212,43 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* Metric cards */}
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <MetricCard
-          icon="fas fa-moon"
-          label="Sleep Quality"
-          value={todayLog?.sleep_quality}
-        />
-        <MetricCard
-          icon="far fa-heart"
-          label="Heart Rate Variability"
-          value={todayLog?.hrv}
-        />
-        <MetricCard
-          icon="fas fa-fire"
-          label="Calories"
-          value={todayLog?.calories}
-        />
-        <MetricCard
-          icon="fas fa-wave-square"
-          label="Recovery Score"
-          value={Math.round(todayLog?.recovery_rating ?? NaN) || undefined}
-        />
-        <MetricCard
-          icon="fas fa-brain"
-          label="Stress Level"
-          value={todayLog?.stress}
-        />
-        <MetricCard
-          icon="far fa-stopwatch"
-          label="Activity Minutes"
-          /* demo value – replace when you have real minutes */
-          value={todayLog?.total_sets ? todayLog.total_sets * 3 : undefined}
-        />
-      </section>
-
-      {digest && <DigestAlerts alerts={digest.alerts} />}
-      {digest && <DigestTips   tips={digest.micro_tips} />}
+        {/* Metric cards: always render, but blank out after 17:00 */}
+         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+           <MetricCard
+             icon="fas fa-moon"
+             label="Sleep Quality"
+             value={hour < 17 ? todayLog?.sleep_quality : undefined}
+           />
+           <MetricCard
+             icon="far fa-heart"
+             label="Heart Rate Variability"
+             value={hour < 17 ? todayLog?.hrv : undefined}
+           />
+           <MetricCard
+             icon="fas fa-fire"
+             label="Calories"
+             value={hour < 17 ? todayLog?.calories : undefined}
+           />
+           <MetricCard
+             icon="fas fa-wave-square"
+             label="Recovery Score"
+             value={hour < 17 ? Math.round(todayLog?.recovery_rating ?? NaN) : undefined}
+           />
+           <MetricCard
+             icon="fas fa-brain"
+             label="Stress Level"
+             value={hour < 17 ? todayLog?.stress : undefined}
+           />
+           <MetricCard
+             icon="far fa-stopwatch"
+             label="Activity Minutes"
+             value={hour < 17 && todayLog?.total_sets ? todayLog.total_sets * 3 : undefined}
+           />
+         </section>
+        
+         {/* Digests: only show before 17:00 */}
+         {hour < 17 && digest && <DigestAlerts alerts={digest.alerts} />}
+         {hour < 17 && digest && <DigestTips   tips={digest.micro_tips} />}
       </main>
     </div>
   );
