@@ -89,7 +89,7 @@ export default function AppNav({ children }: { children: ReactNode }) {
         )}
       </Disclosure>
 
-      <main className="max-w-3xl mx-auto p-6 space-y-6">
+      <main className="max-w-7xl mx-auto p-6 space-y-6">
         {children}
       </main>
     </div>

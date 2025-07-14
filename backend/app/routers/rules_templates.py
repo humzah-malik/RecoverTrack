@@ -9,10 +9,12 @@ from app.models import RuleTemplate
 from app.schemas import (
     RuleTemplateCreate,
     RuleTemplateUpdate,
-    RuleTemplateOut
+    RuleTemplateOut,
+    EvaluateRulesPayload
 )
 from app.routers.auth import get_current_user
 from app.models import User
+from app.utils.rules import evaluate_rules_from_context
 
 router = APIRouter(
     prefix="/rules",
@@ -97,3 +99,12 @@ def delete_rule(
         raise HTTPException(status_code=404, detail="Rule not found")
     db.delete(rule)
     db.commit()
+
+@router.post("/evaluate", response_model=List[str])
+def evaluate_rules_api(
+    payload: EvaluateRulesPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    insights = evaluate_rules_from_context(payload.ctx, payload.timeframe, current_user, db)
+    return insights

@@ -61,7 +61,9 @@ export default function AppRouter() {
           path="trends"
           element={
             <ProtectedRoute>
+              <AppNav >  
               <Trends />
+              </AppNav >
             </ProtectedRoute>
           }
         />

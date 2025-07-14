@@ -183,6 +183,9 @@ class UserUpdate(BaseModel):
     
 # ── Rule Templates ────────────────────────────────────────────────────────────
 
+class EvaluateRulesPayload(BaseModel):
+    ctx: Dict[str, Any]
+    timeframe: str  # must match "daily" | "weekly" | "monthly"
 class RuleTemplateBase(BaseModel):
     id: str
     description: str
