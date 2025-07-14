@@ -10,28 +10,28 @@ interface Props {
 export default function FileDrop({ onDone }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
-  const [stats, setStats]       = useState<{processed?:number; duplicates?:number; errors?:number}>({});
+  const bulkImport = useBulkImport(pct => setProgress(pct))
+  const [stats, setStats] = useState<{processed?:number; duplicates?:number; errors?:number}>({});
+  const [fileName, setFileName] = useState<string|null>(null);
   const queryClient = useQueryClient();
 
-  const { mutate, isLoading } = useBulkImport();
-
   const handleFiles = (files: FileList | null) => {
-    if (!files || !files[0]) return;
-    mutate(files[0], {
+    if (!files?.[0]) return;
+    
+    const file = files[0];
+    setFileName(file.name);
+    bulkImport.mutate(file, {
       onSuccess: res => {
-        setStats(res);
-        toast.success(res.message);
-        // invalidate caches so Dashboard / Calendar refresh
+        setStats(res)
+        toast.success(res.message)
         queryClient.invalidateQueries({ queryKey: ['daily-log'] });
-        queryClient.invalidateQueries({ queryKey: ['recovery']   });
-        queryClient.invalidateQueries({ queryKey: ['history']    });
-        onDone?.();
+        queryClient.invalidateQueries({ queryKey: ['recovery'] });
+        queryClient.invalidateQueries({ queryKey: ['history'] });
+        onDone?.()
       },
       onError: err => toast.error(err.message),
-      // custom progress pipe through the onSuccess trampoline hack
-      onMutate: undefined,
-    });
-  };
+    })
+  }
 
   /* drag handlers */
   const prevent = (e: DragEvent) => { e.preventDefault(); e.stopPropagation(); };
@@ -42,6 +42,11 @@ export default function FileDrop({ onDone }: Props) {
       onDragEnter={prevent} onDragOver={prevent} onDrop={drop}
       className="border-2 border-dashed border-gray-300 rounded-md max-w-xl mx-auto py-16 flex flex-col items-center justify-center gap-3"
     >
+      {fileName && (
+        <p className="text-gray-700 text-sm mb-2">
+          Selected: <strong>{fileName}</strong>
+        </p>
+      )}
       <i className="fas fa-cloud-upload-alt text-gray-500 text-3xl" />
       <p className="text-black text-base">Drag and drop your file here</p>
       <p className="text-gray-400 text-sm">or</p>
@@ -62,7 +67,7 @@ export default function FileDrop({ onDone }: Props) {
       <p className="text-gray-500 text-xs mt-2">CSV, XLSX (max&nbsp;10&nbsp;MB)</p>
 
       {/* progress & stats */}
-      {isLoading && (
+      {bulkImport.status === "pending" && (
         <div className="w-full px-8 mt-6">
           <div className="flex justify-between text-xs font-semibold mb-1">
             <span>Uploading file…</span>

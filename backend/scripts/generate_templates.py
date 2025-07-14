@@ -17,7 +17,7 @@ cols = [
     "Sleep Quality (1-5)",
     "Resting HR",
     "HRV",
-    "Soreness (list)",
+    "Soreness (1-5)",
     "Stress (1-5)",
     "Motivation (1-5)",
     "Total Sets",
@@ -43,25 +43,25 @@ SPLITS = [
 
 # ---------- 2a. Instructional rows ------------------------------------------
 help_row = [""] * len(cols)
-help_row[cols.index("Split")] = f"VALID SPLITS → {', '.join(SPLITS)}"
+help_row[cols.index("Split")] = f"VALID SPLITS SESSIONS→ {', '.join(SPLITS)}"
 
 guide_row = ["*** START WRITING BELOW OR OVERWRITE SAMPLE ROWS ***"] + [""] * (len(cols)-1)
 
 # ---------- 2. Example rows --------------------------------------------------
 rows = [
     # Training day
-    ["2025-07-12","Y","23:30","07:10",4,55,85,"[2,1,0,0]",2,4,
+    ["2025-07-12","Y","23:30","07:10",4,55,85,"4",2,4,
      20,2,25,2700,'{"protein":170,"carbs":320,"fat":80}',2.7,"Push", 79],
     # Rest day
-    ["2025-07-13","N","23:45","07:20",3,57,82,"[3,2,1,0]",3,3,
+    ["2025-07-13","N","23:45","07:20",3,57,82,"5",3,3,
      "","","",2500,'{"protein":160,"carbs":300,"fat":75}',2.3,"Rest", 65],
     # Another training day
-    ["2025-07-14","Y","00:05","08:00",5,54,88,"[1,0,0,0]",1,5,
+    ["2025-07-14","Y","00:05","08:00",5,54,88,"2",1,5,
      18,1,22,2900,'{"protein":180,"carbs":330,"fat":85}',3.0,"Pull", 83],
 ]
 
 info_row = [""] * len(cols)
-info_row[cols.index("Split")] = f"VALID SPLITS → {', '.join(SPLITS)}"
+info_row[cols.index("Split")] = f"VALID SPLITS SESSIONS→ {', '.join(SPLITS)}"
 
 df = pd.DataFrame([help_row, guide_row] + rows, columns=cols)
 

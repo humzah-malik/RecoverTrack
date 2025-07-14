@@ -87,7 +87,14 @@ def lookup_split_info(tpl_id: str, session_name: str):
             .single()
             .execute()
         )
-        tpl_cache[tpl_id] = (rec.data or {}).get("type", "")
+        rec = (
+            supabase.table("split_templates")
+            .select("id,type")
+            .eq("id", tpl_id)
+            .limit(1)   # ← safer than .single()
+            .execute()
+        )
+        tpl_cache[tpl_id] = (rec.data[0] if rec.data else {}).get("type", "")
     t_type = tpl_cache.get(tpl_id, "")
 
     # Session → muscle_groups  (list[str])
@@ -98,10 +105,10 @@ def lookup_split_info(tpl_id: str, session_name: str):
             .select("muscle_groups")
             .eq("template_id", tpl_id)
             .eq("name", session_name or "")
-            .single()
+            .limit(1)
             .execute()
         )
-        sess_cache[key] = (rec.data or {}).get("muscle_groups", [])
+        sess_cache[key] = (rec.data[0] if rec.data else {}).get("muscle_groups", [])
     muscles = sess_cache[key]
 
     dbg(f"→ tpl {tpl_id} session {session_name!r} → type={t_type!r} muscles={muscles[:3]}…")

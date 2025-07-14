@@ -5,8 +5,6 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from typing import List
-import pandas as pd
-from io import BytesIO
 from app.database import SessionLocal
 from app.models import DailyLog, SplitSession, SplitTemplate
 from app.schemas import DailyLogCreate, DailyLogOut
@@ -14,6 +12,8 @@ from app.routers.auth import get_current_user
 from app.routers.recovery import predict as predict_recovery_score
 from fastapi import Request
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["daily-log"])
 
@@ -41,7 +41,7 @@ FRIENDLY_HDRS = {
     "Calories":                 "calories",
     "Macros (JSON)":            "macros",
     "Water Intake (L)":         "water_intake_l",
-    "Split":                    "split",
+    "Split Session":                    "split",
     "Recovery Rating (0-100)":  "recovery_rating",
 }
 
@@ -120,20 +120,31 @@ def get_daily_log(
 
 @router.get("/daily-log/history", response_model=list[DailyLogOut])
 def get_history(
-    days: int = Query(7, ge=1, le=30),
+    start: date = Query(..., description="YYYY-MM-DD"),
+    days:  int  = Query(7, ge=1, le=31),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    cutoff = datetime.utcnow().date() - timedelta(days=days-1)
+    """
+    Returns all daily-logs for the period [start, start days - 1].
+    """
+    end = start + timedelta(days=days-1)
+
+    logger.info(f"[GET /daily-log/history] user={current_user.id} start={start} days={days} → end={end}")
+
     logs = (
         db.query(DailyLog)
-        .filter(
+          .filter(
             DailyLog.user_id == current_user.id,
-            DailyLog.date >= cutoff
-        )
-        .order_by(DailyLog.date.desc())
-        .all()
+            DailyLog.date >= start,
+            DailyLog.date <= end,
+          )
+          .order_by(DailyLog.date.asc())
+          .all()
     )
+
+    found_dates = [str(l.date) for l in logs]
+    logger.info(f"[GET /daily-log/history] → found {len(logs)} logs: {found_dates}")
     return logs
 
 @router.post("/daily-log/bulk-import", status_code=201)
@@ -143,24 +154,64 @@ async def bulk_import_logs(
     db: Session = Depends(get_db),
 ):
     try:
-        content = file.file.read()
-        if file.filename.endswith(".csv"):
-            df = pd.read_csv(BytesIO(content))
-        elif file.filename.endswith((".xlsx", ".xls")):
-            df = pd.read_excel(BytesIO(content))
+        content = await file.read()
+        # 1) Read headers correctly (don’t skip the real header row)
+        if file.filename.lower().endswith(".csv"):
+            df = pd.read_csv(BytesIO(content), header=0)
+        elif file.filename.lower().endswith((".xlsx", ".xls")):
+            df = pd.read_excel(BytesIO(content), header=0)
         else:
-            raise HTTPException(status_code=400, detail="Unsupported file type")
+            raise HTTPException(400, "Unsupported file type")
 
+        # 2) Map your friendly headers to internal names
         df.rename(columns=lambda c: FRIENDLY_HDRS.get(c.strip(), c.strip()), inplace=True)    
+
+        # 3) Drop the “info” row if it doesn’t have a valid date
+        #    (this is the embedded row that just lists valid splits)
+        if "date" not in df.columns:
+            raise HTTPException(400, detail="Missing required 'Date' column in upload")
+
+        # Attempt to parse; invalid rows get NaT
+        parsed = pd.to_datetime(df["date"], errors="coerce")
+        keep = parsed.notna()
+        dropped = len(df) - keep.sum()
+        if keep.sum() == 0:
+            raise HTTPException(400, detail="No valid dates found in upload")
+        if dropped:
+            # optional: log how many you dropped
+            print(f"⚠️ Dropped {dropped} rows with invalid date values")
+
+        df = df.loc[keep].copy()
+        df["date"] = parsed.dt.date
+        print("✅ Dates being imported:", df["date"].tolist())
+
+        # Replace any remaining NaNs
 
         df.fillna(value=pd.NA, inplace=True)
 
-        for _, row in df.iterrows():
+        processed = duplicates = errors = 0
+
+        for idx, row in df.iterrows():
+            try:
+                db.rollback()
+            except:
+                pass
             try:
                 row = row.where(pd.notnull(row), None)
-                date_value = pd.to_datetime(row["date"]).date()
+                date_value = row["date"]
                 trained_raw = str(row.get("trained", "")).strip().upper()
                 trained = 1 if trained_raw in ["Y", "YES", "TRUE", "1"] else 0
+
+                raw_soreness = row.get("soreness")
+                if raw_soreness:
+                   try:
+                       lst = json.loads(raw_soreness)
+                       # e.g. store the first element (or compute sum/avg as you prefer)
+                       soreness_val = int(lst[0])
+                   except Exception:
+                       soreness_val = None
+                else:
+                   soreness_val = None
 
                 log_data = {
                     "date": date_value,
@@ -170,14 +221,14 @@ async def bulk_import_logs(
                     "sleep_quality": row.get("sleep_quality"),
                     "resting_hr": row.get("resting_hr"),
                     "hrv": row.get("hrv"),
-                    "soreness": eval(row.get("soreness")) if row.get("soreness") else None,
+                    "soreness": soreness_val,
                     "stress": row.get("stress"),
                     "motivation": row.get("motivation"),
                     "total_sets": row.get("total_sets"),
                     "failure_sets": row.get("failure_sets"),
                     "total_rir": row.get("total_rir"),
                     "calories": row.get("calories"),
-                    "macros": eval(row.get("macros")) if row.get("macros") else None,
+                    "macros": json.loads(row.get("macros")) if row.get("macros") else None,
                     "water_intake_l": row.get("water_intake_l"),
                     "split": row.get("split"),
                     "recovery_rating": row.get("recovery_rating"),
@@ -190,13 +241,21 @@ async def bulk_import_logs(
                       .first()
                 )
                 if obj:
+                    duplicates += 1
                     for k, v in log_data.items():
                         setattr(obj, k, v)
                 else:
+                    processed += 1
                     new_log = DailyLog(user_id=current_user.id, **log_data)
                     db.add(new_log)
 
-                db.flush()
+                try:
+                   db.flush()
+                except Exception:
+                   # if flush fails, rollback this transaction chunk so we can continue
+                   db.rollback()
+                   errors += 1
+                   continue
 
                 fake_req = Request(scope={"type": "http"})
                 fake_req._body = json.dumps({          # monkey-patch body
@@ -204,20 +263,170 @@ async def bulk_import_logs(
                     "date":    str(date_value)
                 }).encode()
 
-                await predict_recovery_score(
-                    request=fake_req,
-                    debug=False,
-                    db=db,
-                    me=current_user
-                )
-
+                try:
+                    await predict_recovery_score(
+                        request=fake_req,
+                        debug=False,
+                        db=db,
+                        me=current_user
+                    )
+                except Exception as rec_e:
+                    # log and keep going
+                    print(f"⚠️ Recovery prediction failed on row {idx}: {rec_e}")
+                    errors += 1
+                    continue
+            
+            except HTTPException:
+                raise
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Error processing row: {e}")
+                # Log the full traceback so you can inspect it in your console
+                import traceback; traceback.print_exc()
+                db.rollback()
+                errors += 1
+                # DO NOT re-raise — just move on to the next row
+                continue
 
         db.commit()
 
-        return {"message": "Bulk import successful"}
+        return {
+            "processed": processed,
+            "duplicates": duplicates,
+            "errors": errors,
+            "message": f"Imported {processed} rows, {duplicates} updated, {errors} errors"
+        }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Bulk import failed: {e}")
+        # if we raised an HTTPException above, re-raise it directly
+        if isinstance(e, HTTPException):
+            raise
 
+        import traceback; traceback.print_exc()
+        raise HTTPException(500, detail=f"Bulk import failed: {e}")
+
+@router.get(
+    "/daily-log/template.csv",
+    summary="Download CSV template for bulk daily-log import",
+)
+def download_daily_log_template_csv(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # 1) fetch the user's split sessions
+    sessions = (
+        db.query(SplitSession)
+          .filter_by(template_id=current_user.split_template_id)
+          .order_by(SplitSession.id)
+          .all()
+    )
+    names = [s.name for s in sessions]
+
+    # 2) define friendly headers + sample rows
+    cols = [
+        "Date",
+        "Trained (Y/N)",
+        "Sleep Start (HH:MM)",
+        "Sleep End (HH:MM)",
+        "Sleep Quality (1-5)",
+        "Resting HR",
+        "HRV",
+        "Soreness (list)",
+        "Stress (1-5)",
+        "Motivation (1-5)",
+        "Total Sets",
+        "Failure Sets",
+        "Total RIR",
+        "Calories",
+        "Macros (JSON)",
+        "Water Intake (L)",
+        "Split Session",
+        "Recovery Rating (0-100)",
+    ]
+
+    # 3) three example rows (training, rest, training)
+    rows = [
+        # Training day
+        ["2025-07-12", "Y", "23:30", "07:10", 4, 55, 85, "[2,1,0,0]", 2, 4,
+         20, 2, 25, 2700, '{"protein":170,"carbs":320,"fat":80}', 2.7, names[0], 78],
+        # Rest day
+        ["2025-07-13", "N", "23:45", "07:20", 3, 57, 82, "[3,2,1,0]", 3, 3,
+         "", "", "", 2500, '{"protein":160,"carbs":300,"fat":75}', 2.3, names[1] if len(names)>1 else "", 69],
+        # Another training day
+        ["2025-07-14", "Y", "00:05", "08:00", 5, 54, 88, "[1,0,0,0]", 1, 5,
+         18, 1, 22, 2900, '{"protein":180,"carbs":330,"fat":85}', 3.0, names[2] if len(names)>2 else "", 82],
+    ]
+
+    # 4) info row listing valid splits
+    info = [""] * len(cols)
+    info[cols.index("Split Session")] = "VALID SPLITS SESSIONS → " + ", ".join(names)
+
+    df = pd.DataFrame([info] + rows, columns=cols)
+
+    # 5) stream back as CSV
+    buf = BytesIO()
+    df.to_csv(buf, index=False)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=daily_log_template.csv"},
+    )
+
+@router.get(
+    "/daily-log/template.xlsx",
+    summary="Download XLSX template for bulk daily-log import",
+)
+def download_daily_log_template_xlsx(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # same session lookup + rows as above
+    sessions = (
+        db.query(SplitSession)
+          .filter_by(template_id=current_user.split_template_id)
+          .order_by(SplitSession.id)
+          .all()
+    )
+    names = [s.name for s in sessions]
+
+    cols = [
+        "Date",
+        "Trained (Y/N)",
+        "Sleep Start (HH:MM)",
+        "Sleep End (HH:MM)",
+        "Sleep Quality (1-5)",
+        "Resting HR",
+        "HRV",
+        "Soreness (1-5)",
+        "Stress (1-5)",
+        "Motivation (1-5)",
+        "Total Sets",
+        "Failure Sets",
+        "Total RIR",
+        "Calories",
+        "Macros (JSON)",
+        "Water Intake (L)",
+        "Split",
+        "Recovery Rating (0-100)",
+    ]
+    rows = [
+        ["2025-07-12", "Y", "23:30", "07:10", 4, 55, 85, "[2,1,0,0]", 2, 4,
+         20, 2, 25, 2700, '{"protein":170,"carbs":320,"fat":80}', 2.7, names[0], 78],
+        ["2025-07-13", "N", "23:45", "07:20", 3, 57, 82, "[3,2,1,0]", 3, 3,
+         "", "", "", 2500, '{"protein":160,"carbs":300,"fat":75}', 2.3, names[1] if len(names)>1 else "", 69],
+        ["2025-07-14", "Y", "00:05", "08:00", 5, 54, 88, "[1,0,0,0]", 1, 5,
+         18, 1, 22, 2900, '{"protein":180,"carbs":330,"fat":85}', 3.0, names[2] if len(names)>2 else "", 82],
+    ]
+    info = [""] * len(cols)
+    info[cols.index("Split")] = "VALID SPLITS SESSIONS → " + ", ".join(names)
+
+    df = pd.DataFrame([info] + rows, columns=cols)
+
+    buf = BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Template")
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=daily_log_template.xlsx"},
+    )
