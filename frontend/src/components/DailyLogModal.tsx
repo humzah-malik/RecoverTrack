@@ -4,14 +4,18 @@ import { useDailyLog, useUpsertDailyLog } from './DailyLog';
 import { useSplitSessions } from '../hooks/useSplitSessions';
 import { useProfile } from '../hooks/useProfile';
 import { useQueryClient } from '@tanstack/react-query';
+import RangeField from '../components/RangeField'
 console.log('Dialog=', Dialog, 'Transition=', Transition)
 console.log('useDailyLog=', useDailyLog, 'useUpsertDailyLog=', useUpsertDailyLog)
 import { toast } from 'react-hot-toast';
+import React from 'react'
+import dayjs from 'dayjs';
 
 interface Props {
   date: string;
   isOpen: boolean;
   onClose: () => void;
+  disableMorningFields?: boolean;
 }
 
 export default function DailyLogModal({ date, isOpen, onClose }: Props) {
@@ -20,6 +24,10 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
   const { data: sessions = [] } = useSplitSessions();
   const { profile } = useProfile();
   const queryClient = useQueryClient();
+  const tomorrowStr  = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  const currentHour = dayjs().hour();
+  // lock morning inputs for *tomorrow’s* date, but only after 17:00
+  const disableMorning = (date === tomorrowStr) && (currentHour >= 17);
 
   const [form, setForm] = useState({
     sleepStart: '23:30',
@@ -73,10 +81,21 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    let v: string | boolean | number;
+  
+    if (disableMorning) {
+      const morningFields = [
+        'sleepStart', 'sleepEnd', 'restingHr', 'hrv', 'water',
+        'stress', 'motivation', 'soreness', 'sleepQuality'
+      ];
+      if (morningFields.includes(name)) return;
+    }
+  
+    if (type === 'checkbox') v = checked;
+    else if (type === 'range') v = Number(value);
+    else v = value;
+  
+    setForm(prev => ({ ...prev, [name]: v }));
   };
 
   const handleSave = () => {
@@ -174,6 +193,7 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
               {/* Scrollable Body */}
               <div className="max-h-[70vh] overflow-y-auto px-6 py-6 space-y-6">
               <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className={disableMorning ? 'opacity-50 pointer-events-none' : ''}>
                 <Section title="Sleep & Wellness">
                   <Field
                     label="Sleep Start"
@@ -181,6 +201,7 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                     name="sleepStart"
                     value={form.sleepStart}
                     onChange={handleChange}
+                    disabled={disableMorning}
                   />
                   <Field
                     label="Sleep End"
@@ -188,15 +209,57 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                     name="sleepEnd"
                     value={form.sleepEnd}
                     onChange={handleChange}
+                    disabled={disableMorning}
                   />
-                  <Field label="Resting HR" name="restingHr" value={form.restingHr} onChange={handleChange} />
-                  <Field label="HRV" name="hrv" value={form.hrv} onChange={handleChange} />
-                  <Field label="Water Intake (L)" name="water" value={form.water} onChange={handleChange} />
-                  <RangeField label="Stress (0–5)" name="stress" value={form.stress} onChange={handleChange} />
-                  <RangeField label="Motivation (0–5)" name="motivation" value={form.motivation} onChange={handleChange} />
-                  <RangeField label="Soreness (0–5)" name="soreness" value={form.soreness} onChange={handleChange} />
-                  <RangeField label="Sleep Quality (0–5)" name="sleepQuality" value={form.sleepQuality} onChange={handleChange} />
+                  <Field label="Resting HR" name="restingHr" value={form.restingHr} onChange={handleChange} disabled={disableMorning}/>
+                  <Field label="HRV" name="hrv" value={form.hrv} onChange={handleChange} disabled={disableMorning}/>
+                  <Field label="Water Intake (L)" name="water" value={form.water} onChange={handleChange} disabled={disableMorning}/>
+                  <RangeField
+                    label="Stress (1–5)"
+                    name="stress"
+                    value={form.stress}
+                    onChange={val => {
+                      if (disableMorning) return;
+                      setForm(f => ({ ...f, stress: val }));
+                    }}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={disableMorning}
+                  />
+  
+                  <RangeField
+                    label="Motivation (1–5)"
+                    name="motivation"
+                    value={form.motivation}
+                    onChange={val => setForm(f => ({ ...f, motivation: val }))}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={disableMorning}
+                  />
+                  <RangeField
+                    label="Soreness (1–5)"
+                    name="soreness"
+                    value={form.soreness}
+                    onChange={val => setForm(f => ({ ...f, soreness: val }))}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={disableMorning}
+                  />
+                  <RangeField
+                    label="Sleep Quality (1–5)"
+                    name="sleepQuality"
+                    value={form.sleepQuality}
+                    onChange={val => setForm(f => ({ ...f, sleepQuality: val }))}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={disableMorning}
+                  />
                 </Section>
+                </div>
               </div>  
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -270,33 +333,6 @@ function Field({ label, ...props }: any) {
     </div>
   );
 }
-
-function RangeField({ label, name, value, onChange }: any) {
-    const MAX = 5;
-    const pct = (Number(value) / MAX) * 100;
-    const trackStyle = {
-      background: `linear-gradient(to right, #000 0%, #000 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`
-    };
-  
-    return (
-      <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">{label}</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            name={name}
-            min={0}
-            max={MAX}
-            value={value}
-            onChange={onChange}
-            style={trackStyle}
-            className="w-full h-1 rounded-lg appearance-none"
-          />
-          <span className="w-6 text-right text-sm text-gray-800">{value}</span>
-        </div>
-      </div>
-    );
-  }
 
 function ToggleField({ label, name, checked, onChange }: any) {
   return (

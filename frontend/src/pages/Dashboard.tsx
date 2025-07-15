@@ -16,6 +16,9 @@ import { useDailyDigest } from '../hooks/useDailyDigest';
 import { DigestAlerts }    from '../components/DigestAlerts';
 import { DigestTips }      from '../components/DigestTips';
 import { getRecovery } from '../api/recovery';
+import CheckinCard from '../components/CheckinCard';
+import DailyLogModal from '../components/DailyLogModal';
+import { useState } from 'react';
 
 export default function Dashboard() {
   /* --- navigation data & route helpers ----------------------- */
@@ -76,6 +79,29 @@ export default function Dashboard() {
   }
 
   const { data: digest } = useDailyDigest();
+  const [modalDate, setModalDate] = useState<string | null>(null);
+
+  const sleepDurationText =
+    todayLog?.sleep_start && todayLog?.sleep_end
+      ? (() => {
+          const [sh, sm] = todayLog.sleep_start.split(':').map(Number);
+          const [eh, em] = todayLog.sleep_end.split(':').map(Number);
+          let mins = (eh * 60 + em) - (sh * 60 + sm);
+          if (mins < 0) mins += 24 * 60;
+          return `${(mins / 60).toFixed(1)}h`;
+        })()
+      : null;
+  
+    // Control what data is displayed
+    const allowMorningEdit = hour < 17;  // disallow click after 5pm
+    const showMorningData = hour < 17;
+    const disableMorningCard = hour >= 17;
+
+    // Choose log date for modal
+    const handleMorningClick = () => {
+      if (disableMorningCard) return;
+      setModalDate(today);
+    };
 
   /* ----------------------------------------------------------- */
   return (
@@ -174,6 +200,8 @@ export default function Dashboard() {
           </div>
         </section>
 
+        
+
         {/* Recovery score */}
         <section
                   aria-label="Recovery score"
@@ -182,38 +210,78 @@ export default function Dashboard() {
                   <RecoveryScoreDisplay date={today} />
                 </section>
         {/* Daily logs */}
-        <section aria-label="Daily logs" className="space-y-6">
-          <DailyAccordion
-            date={yesterday}
+        <section aria-label="Daily logs" className="grid sm:grid-cols-2 gap-6">
+          <CheckinCard
             type="evening"
-            label="Yesterday’s Evening Check-In"
-            disabled           // always read-only
+            title="Evening Log"
+            completed={hasEvening}
+            onClick={() => setModalDate(tomorrow)}
+            sections={[
+              {
+                title: 'Workout Log',
+                fields: [
+                  { label: 'Trained', value: tomorrowLog?.trained ? 'Yes' : 'No' },
+                  { label: 'Session', value: tomorrowLog?.split },
+                  { label: 'Total Sets', value: tomorrowLog?.total_sets },
+                  { label: 'Failure Sets', value: tomorrowLog?.failure_sets },
+                  { label: 'Total RIR', value: tomorrowLog?.total_rir },
+                  { label: 'Recovery Rating', value: tomorrowLog?.recovery_rating },
+                ],
+              },
+              {
+                title: 'Nutrition',
+                fields: [
+                  { label: 'Calories', value: tomorrowLog?.calories },
+                  { label: 'Protein (g)', value: tomorrowLog?.macros?.protein },
+                  { label: 'Carbs (g)', value: tomorrowLog?.macros?.carbs },
+                  { label: 'Fat (g)', value: tomorrowLog?.macros?.fat },
+                ],
+              },
+            ]}
           />
-          <DailyAccordion
-               date={today}
-               type="morning"
-               label="Today’s Morning Check-In"
-               disabled={hour >= 17}
-               onSave={() => {
-                 queryClient.invalidateQueries({ queryKey: ['daily-log', today] });
-                 queryClient.invalidateQueries({ queryKey: ['recovery',   today] });
-                 queryClient.invalidateQueries({ queryKey: ['digests'] });
-               }}
-          />
-          <DailyAccordion
-            date={tomorrow}
-            type="evening"
-            label="Tonight’s Evening Check-In"
-            disabled={dayjs().hour() < 17}
-            onSave={() => {
-              queryClient.invalidateQueries({ queryKey: ['daily-log', tomorrow] });
-              queryClient.invalidateQueries({ queryKey: ['digests'] });   // show tips immediately
-            }}
-          />
+          <CheckinCard
+              type="morning"
+              title="Morning Check-in"
+              completed={hasMorning}
+              disabled={disableMorningCard} // ✅ new
+              onClick={handleMorningClick}
+              sections={[
+                {
+                  title: 'Sleep & Wellness',
+                  fields: showMorningData
+                    ? [
+                        { label: 'Sleep Start', value: todayLog?.sleep_start },
+                        { label: 'Sleep End', value: todayLog?.sleep_end },
+                        { label: 'Sleep Duration', value: sleepDurationText },
+                        { label: 'Resting HR', value: todayLog?.resting_hr },
+                        { label: 'HRV', value: todayLog?.hrv },
+                        { label: 'Water Intake (L)', value: todayLog?.water_intake_l },
+                        { label: 'Stress', value: todayLog?.stress },
+                        { label: 'Motivation', value: todayLog?.motivation },
+                        { label: 'Soreness', value: todayLog?.soreness },
+                        { label: 'Sleep Quality', value: todayLog?.sleep_quality },
+                        { label: 'Recovery Rating', value: todayLog?.recovery_rating },
+                      ]
+                    : [],
+                },
+              ]}
+            />
         </section>
 
-        {/* Metric cards: always render, but blank out after 17:00 */}
-         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {modalDate && (
+          <DailyLogModal
+            date={modalDate}
+            isOpen={true}
+            onClose={() => {
+              setModalDate(null);
+              queryClient.invalidateQueries({ queryKey: ['daily-log', modalDate] });
+            }}
+            
+          />
+        )}
+
+        {/* Metric cards: always render, but blank out after 17:00
+          <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
            <MetricCard
              icon="fas fa-moon"
              label="Sleep Quality"
@@ -245,6 +313,7 @@ export default function Dashboard() {
              value={hour < 17 && todayLog?.total_sets ? todayLog.total_sets * 3 : undefined}
            />
          </section>
+        */}
         
          {/* Digests: only show before 17:00 */}
          {hour < 17 && digest && <DigestAlerts alerts={digest.alerts} />}

@@ -10,9 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coreui/react-pro": "^5.17.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.1.1",
+    "@mui/material": "^7.2.0",
     "@supabase/supabase-js": "^2.50.4",
     "@tanstack/react-query": "^5.81.5",
     "axios": "^1.10.0",
