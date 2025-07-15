@@ -3,6 +3,8 @@ import { useState } from 'react';
 import CalendarHeader from '../components/CalendarHeader';
 import CalendarGrid   from '../components/CalendarGrid';
 import { useCalendarData } from '../hooks/useCalendarData';
+import DailyLogModal from '../components/DailyLogModal';
+import { useDailyLog, useUpsertDailyLog } from '../components/DailyLog';
 
 /* small helpers for cards + legend (same as before) */
 function Card({ title, value }: { title: string | number; value: string | number }) {
@@ -37,6 +39,7 @@ function Legend() {
 export default function CalendarPage() {
   const [view, setView]  = useState<'week' | 'month'>('month');
   const [cursor, setCur] = useState(dayjs().startOf('month'));
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const { dayStates, stats } = useCalendarData(view, cursor);
 
@@ -84,11 +87,18 @@ export default function CalendarPage() {
         view={view}
         cursor={cursor}
         dayStates={dayStates}
-        onSelect={() => {/* TODO: open day modal */}}
+        onSelect={(d) => setSelectedDate(d.format('YYYY-MM-DD'))}
       />
       </div>
 
       {view === 'month' && <Legend />}
+      {selectedDate && (
+        <DailyLogModal
+          date={selectedDate}
+          isOpen={true}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
     </div>
   );
 }

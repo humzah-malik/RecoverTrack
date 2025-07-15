@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from io import BytesIO
 import pandas as pd
@@ -48,6 +48,7 @@ FRIENDLY_HDRS = {
 @router.post("/daily-log", response_model=DailyLogOut, status_code=201)
 def upsert_daily_log(
     payload: DailyLogCreate,
+    background_tasks: BackgroundTasks,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -101,6 +102,21 @@ def upsert_daily_log(
         db.add(obj)
     db.commit()
     db.refresh(obj)
+
+    fake_req = Request(scope={"type": "http"})
+    fake_req._body = json.dumps({
+      "user_id": str(current_user.id),
+      "date":    str(obj.date),
+    }).encode()
+
+    background_tasks.add_task(
+      predict_recovery_score,
+      fake_req,
+      False,      # debug=False
+      db,
+      current_user
+    )
+
     return obj
 
 @router.get("/daily-log", response_model=DailyLogOut)

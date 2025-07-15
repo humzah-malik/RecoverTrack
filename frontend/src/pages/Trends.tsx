@@ -1,5 +1,5 @@
 // src/pages/Trends.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { groupBy } from 'lodash';
 import TrendsHeader from '../components/TrendsHeader';
@@ -8,13 +8,15 @@ import { useTrendsData } from '../hooks/useTrendsData';
 import { useInsights } from '../hooks/useInsights';
 
 export default function Trends() {
-  // 1️⃣ week vs month toggle
   const [view, setView] = useState<'week' | 'month'>('month');
 
-  // 2️⃣ sliding window
-  const [cursor, setCursor] = useState(
-    dayjs().startOf(view === 'week' ? 'week' : 'month')
-  );
+  // 2️⃣ sliding window → start off at *today* (we'll snap to period below)
+  const [cursor, setCursor] = useState(dayjs());
+
+  //  ➡️ whenever view changes, reset cursor to the start of that period
+  useEffect(() => {
+    setCursor(dayjs().startOf(view === 'week' ? 'week' : 'month'));
+  }, [view]);
   const prev = () =>
     setCursor(c =>
       view === 'week'
