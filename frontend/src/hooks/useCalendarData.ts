@@ -20,7 +20,7 @@ export function useCalendarData(view: 'week' | 'month', cursor: dayjs.Dayjs) {
   const start = view === 'week'
     ? cursor.startOf('week')
     : cursor.startOf('month')
-  const days = view === 'week' ? 7 : 30
+    const days = view === 'week' ? 7 : cursor.daysInMonth()
 
   const { data: logs = [] } = useQuery<{ date: string; trained?: unknown; recovery_rating?: number }[]>({
     queryKey: ['logs', start.format('YYYY-MM-DD'), days],

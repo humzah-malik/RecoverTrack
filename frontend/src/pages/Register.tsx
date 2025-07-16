@@ -127,26 +127,6 @@ export default function Register() {
         >
           {isSubmitting ? 'Creating…' : 'Register'}
         </button>
-
-        {/* ── Divider ───────────────────────────────────── */}
-        <div className="flex items-center">
-          <hr className="flex-grow border-gray-200 dark:border-gray-600" />
-          <span className="mx-3 text-sm text-gray-400">
-            or continue with
-          </span>
-          <hr className="flex-grow border-gray-200 dark:border-gray-600" />
-        </div>
-
-        {/* ── Google ────────────────────────────────────── */}
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-2 rounded-md
-                     border border-gray-300 py-2.5 font-semibold
-                     hover:bg-gray-50 dark:border-gray-600
-                     dark:text-gray-200 dark:hover:bg-gray-700"
-        >
-          Continue with&nbsp;Google
-        </button>
       </form>
     </AuthLayout>
   )

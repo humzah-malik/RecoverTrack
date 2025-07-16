@@ -5,6 +5,7 @@ export interface CheckinCardProps {
   title: string;
   completed?: boolean;
   disabled?: boolean;
+  showCheck?: boolean;
   sections: {
     title?: string;
     fields: {
@@ -18,7 +19,6 @@ export interface CheckinCardProps {
 
 export default function CheckinCard({
     title,
-    completed,
     disabled = false,
     sections,
     onClick,
@@ -32,7 +32,7 @@ export default function CheckinCard({
       >
         {/* Always render title at top */}
         <h2 className="text-lg font-bold flex items-center gap-2 text-black">
-          {completed && <i className="fas fa-check" />}
+
           {title}
         </h2>
   

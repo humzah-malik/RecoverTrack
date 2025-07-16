@@ -212,18 +212,29 @@ async def predict(
     }
     return RecoveryPredictResponse(predicted_recovery_rating=score)
 
-@router.get("/history", response_model=list[RecoveryPredictionOut])
-def recovery_history(
-    days: int = 30,
+@router.get( "/history",response_model=list[RecoveryPredictionOut],)
+def recovery_history(start: date = Query(..., description="Start date of the history window (YYYY-MM-DD)"),
+    days: int = Query(
+        30,
+        ge=1,
+        description="Number of days to include starting from `start`",
+    ),
     db: Session = Depends(get_db),
     me: User = Depends(get_current_user),
 ):
-    since = date.today() - timedelta(days=days-1)
+    """
+    Returns all recovery predictions for the current user
+    between `start` and `start + days - 1` (inclusive), ordered by date.
+    """
+    since = start
+    until = start + timedelta(days=days - 1)
+
     rows = (
         db.query(RecoveryPrediction)
           .filter(
               RecoveryPrediction.user_id == me.id,
-              RecoveryPrediction.date >= since
+              RecoveryPrediction.date >= since,
+              RecoveryPrediction.date <= until,
           )
           .order_by(RecoveryPrediction.date)
           .all()

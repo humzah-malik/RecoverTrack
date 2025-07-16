@@ -1,7 +1,7 @@
 # backend/app/schemas.py
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationError
 from typing import List, Optional, Dict, Any, Union
-from datetime import date as Date
+from datetime import date as Date, datetime
 import datetime as dt
 
 class SessionSchema(BaseModel):
@@ -134,6 +134,8 @@ class UserOut(BaseModel):
     weight_target: Optional[float]
     weight_target_unit: Optional[str]
     split_template_id: Optional[str]
+    created_at: datetime  # when the user joined
+    total_logs: int       # how many daily-logs they’ve created
     model_config = ConfigDict(from_attributes=True)
     has_completed_onboarding: Optional[bool] = False
 

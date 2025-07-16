@@ -37,12 +37,15 @@ export interface DayData {
 }
 
 export function useTrendsData(view: 'week'|'month', cursor: Dayjs) {
-  const start = view === 'week' 
-    ? cursor.startOf('week') 
-    : cursor.startOf('month')
-  const days = view === 'week' 
-    ? 7 
-    : cursor.daysInMonth()
+    const start = view === 'week'
+        ? cursor.startOf('week')
+        : cursor.startOf('month')
+      const days = view === 'week'
+        ? 7
+        : cursor.daysInMonth()
+    
+      // format the start date as YYYY-MM-DD so our cache keys are stable
+      const fmtStart = start.format('YYYY-MM-DD')
 
   
   // 1️⃣ fetch the user’s macro targets
@@ -56,10 +59,12 @@ export function useTrendsData(view: 'week'|'month', cursor: Dayjs) {
 
   console.debug('userQ status:', userQ.status, userQ.data)
 
-  // 2️⃣ fetch and normalize daily logs
+  // fetch and normalize daily logs
   const logsQ = useQuery<DayData[]>({
-    queryKey: ['dailyLogs', view, start.toString()],
+    // include days *and* a clean date string in the key
+    queryKey: ['dailyLogs', view, fmtStart, days],
     enabled: userQ.isSuccess,
+    refetchOnMount: true,
     queryFn: async () => {
       const raw = (
         await client.get<RawLog[]>('/daily-log/history', {
@@ -117,7 +122,9 @@ export function useTrendsData(view: 'week'|'month', cursor: Dayjs) {
 
   // 3️⃣ fetch recovery predictions
   const recQ = useQuery<RecoveryPred[]>({
-    queryKey: ['recovery', view, start.toString()],
+    // now this key changes any time you move the window *or* change its length
+    queryKey: ['recovery', view, fmtStart, days],
+    refetchOnMount: true,
     queryFn: () => 
       client
         .get<RecoveryPred[]>('/recovery/history', {

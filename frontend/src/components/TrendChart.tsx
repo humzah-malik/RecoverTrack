@@ -1,9 +1,21 @@
 // src/components/TrendChart.tsx
 import React from 'react';
 import {
-  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
-  BarChart, Bar,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
 } from 'recharts';
 
 type ChartType = 'line' | 'bar' | 'radar';
@@ -38,19 +50,29 @@ export default function TrendChart({ chart, data }: TrendChartProps) {
     return (
       <div>
         <h3 className="text-sm font-medium mb-2">Recovery vs Sleep vs HRV</h3>
-        <LineChart width={500} height={250} data={lineData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
-          <YAxis />
-          <Tooltip
-            formatter={(value: number, name: string) => [value.toFixed(1), name]}
-            labelFormatter={(label) => `Metric: ${label}`}
-          />
-          <Legend />
-          <Line type="monotone" dataKey="recovery" name="Recovery" stroke="#F87171" />
-          <Line type="monotone" dataKey="sleep"    name="Sleep (h)" stroke="#34D399" />
-          <Line type="monotone" dataKey="hrv"      name="HRV"       stroke="#111827" />
-        </LineChart>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart
+            data={lineData}
+            margin={{ top: 10, right: 20, left: 0, bottom: 40 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" />
+            <YAxis />
+            <Tooltip
+              formatter={(value: number, name: string) => [value.toFixed(1), name]}
+              labelFormatter={label => `Metric: ${label}`}
+            />
+            {/* Legend moved underneath, centered */}
+            <Legend
+              verticalAlign="bottom"
+              align="center"
+              layout="horizontal"
+            />
+            <Line type="monotone" dataKey="recovery" name="Recovery" stroke="#F87171" />
+            <Line type="monotone" dataKey="sleep"    name="Sleep (h)"  stroke="#34D399" />
+            <Line type="monotone" dataKey="hrv"      name="HRV"        stroke="#111827" />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     );
   }
@@ -60,37 +82,57 @@ export default function TrendChart({ chart, data }: TrendChartProps) {
     return (
       <div>
         <h3 className="text-sm font-medium mb-2">Training Volume vs Failures</h3>
-        <BarChart width={500} height={250} data={barData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
-          <YAxis />
-          <Tooltip 
-            formatter={(value: number, name: string) => [`${value}`, name]} 
-            labelFormatter={(label) => `Metric: ${label}`} 
-          />
-          <Legend />
-          <Bar dataKey="volume"   name="Volume"   fill="#4F46E5" />
-          <Bar dataKey="failures" name="Failures" fill="#FBBF24" />
-        </BarChart>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart
+            data={barData}
+            margin={{ top: 10, right: 20, left: 0, bottom: 40 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" />
+            <YAxis />
+            <Tooltip
+              formatter={(value: number, name: string) => [`${value}`, name]}
+              labelFormatter={label => `Metric: ${label}`}
+            />
+            {/* Legend moved underneath, centered */}
+            <Legend
+              verticalAlign="bottom"
+              align="center"
+              layout="horizontal"
+            />
+            <Bar dataKey="volume"   name="Volume"   fill="#4F46E5" />
+            <Bar dataKey="failures" name="Failures" fill="#FBBF24" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     );
   }
 
-  // chart === 'radar'
+  // radar
   const radarData = data as RadarData[];
   return (
     <div>
       <h3 className="text-sm font-medium mb-2">Macro Distribution</h3>
-      <div className="flex justify-center">
-        <RadarChart outerRadius={80} width={350} height={300} data={radarData}>
+      <ResponsiveContainer width="100%" height={300}>
+        <RadarChart
+          data={radarData}
+          outerRadius="80%"
+          margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+        >
           <PolarGrid />
           <PolarAngleAxis dataKey="metric" />
-          <PolarRadiusAxis angle={30} domain={[0, 'dataMax']} />
-          <Radar name="Goal"   dataKey="goal"   stroke="#F87171" fill="#F87171" fillOpacity={0.2} />
-          <Radar name="Actual" dataKey="actual" stroke="#10B981" fill="#10B981" fillOpacity={0.2} />
-          <Legend />
+          <PolarRadiusAxis angle={30} domain={[0, 'dataMax']} tickCount={3} />
+          <Radar name="Goal"   dataKey="goal"   stroke="#F87171" fill="#F87171" fillOpacity={0.2}/>
+          <Radar name="Actual" dataKey="actual" stroke="#10B981" fill="#10B981" fillOpacity={0.2}/>
+          {/* already centered underneath */}
+          <Legend
+            verticalAlign="bottom"
+            align="center"
+            layout="horizontal"
+            wrapperStyle={{ bottom: 0 }}
+          />
         </RadarChart>
-      </div>
+      </ResponsiveContainer>
     </div>
   );
 }

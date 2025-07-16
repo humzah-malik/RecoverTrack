@@ -1,5 +1,11 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogActions from '@mui/material/DialogActions'
+import Button from '@mui/material/Button'
 import { getMe, updateProfile as updateProfileApi, deleteProfile as deleteProfileApi} from "../api/users"; 
 import type { UserOut } from "../api/auth";
 import { Avatar } from '../components/Avatar';
@@ -16,6 +22,11 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   // banner message
   const [success, setSuccess] = useState<string|null>(null);
+
+  // delete‑confirmation modal state must be up here, before any returns:
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const openDelete  = () => setIsDeleteOpen(true);
+  const closeDelete = () => setIsDeleteOpen(false);
   const { data: splitOptions = [] } = useSplits();
   const { data: activityLevels = [] } = useActivityLevels();
 
@@ -284,27 +295,76 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4">
-        <button
-          onClick={() => updateMutation.mutate(form as any)}
-          disabled={updateMutation.isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Update Account
-        </button>
-        <button
-          onClick={() => {
-            if (confirm("Are you sure you want to delete your account?")) {
-              deleteMutation.mutate();
-            }
-          }}
-          disabled={deleteMutation.isLoading}
-          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Delete Account
-        </button>
-      </div>
+      <section className="bg-white border rounded-lg p-6 my-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Member Since
+          </label>
+          <input
+            type="text"
+            disabled
+            value={new Date(user.created_at).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+            className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Total Logs
+          </label>
+          <input
+            type="number"
+            disabled
+            value={user.total_logs}
+            className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900"
+          />
+        </div>
+
+        {/* Span full width on small screens, two‑col card ends here */}
+        <div className="sm:col-span-2 mt-6 space-y-2">
+          <button
+            // FIXME: hook up your reset‐password logic here later
+            className="w-full px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50"
+          >
+            Reset Password
+          </button>
+          <button
+            onClick={openDelete}
+            disabled={deleteMutation.isLoading}
+            className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700"
+          >
+            Delete Account
+          </button>
+        </div>
+      </section>
+
+      <Dialog
+        open={isDeleteOpen}
+        onClose={closeDelete}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Delete your account?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will <strong>permanently</strong> delete your account.
+            Are you sure you want to proceed?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDelete}>Cancel</Button>
+          <Button
+            onClick={() => { deleteMutation.mutate(); closeDelete(); }}
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

@@ -52,12 +52,13 @@ export default function RangeField({
     disabled = false, // <- Add default
   }: RangeFieldProps) {
     return (
-      <Box mb={4} opacity={disabled ? 0.6 : 1}>
+      <Box mt={6} mb={2} opacity={disabled ? 0.6 : 1}> 
         <Typography
           variant="body2"
           fontWeight={600}
           color="text.primary"
-          mb={1}
+          mb={0.5}
+          textAlign="left"
         >
           {label}
         </Typography>

@@ -18,7 +18,14 @@ def get_db():
 
 @router.get("/me", response_model=UserOut)
 def read_profile(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    # fetch the User record
     user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # count how many daily-logs this user has
+    total = db.query(DailyLog).filter(DailyLog.user_id == user.id).count()
+    # attach a dynamic attribute that Pydantic will pick up
+    user.total_logs = total
     return user
 
 @router.patch("/me", response_model=UserOut)

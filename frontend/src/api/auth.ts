@@ -20,6 +20,10 @@ export interface UserOut {
   weight_target_unit: string | null;
   split_template_id: string | null;
   has_completed_onboarding?: boolean;
+  /** when the user joined, as an ISO string */
+  created_at: string;
+  /** total number of daily‐log records this user has */
+  total_logs: number;
 }
 
 export interface RegisterPayload {

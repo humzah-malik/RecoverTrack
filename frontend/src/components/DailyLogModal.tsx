@@ -195,117 +195,171 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className={disableMorning ? 'opacity-50 pointer-events-none' : ''}>
                 <Section title="Sleep & Wellness">
-                  <Field
-                    label="Sleep Start"
-                    type="time"
-                    name="sleepStart"
-                    value={form.sleepStart}
-                    onChange={handleChange}
-                    disabled={disableMorning}
-                  />
-                  <Field
-                    label="Sleep End"
-                    type="time"
-                    name="sleepEnd"
-                    value={form.sleepEnd}
-                    onChange={handleChange}
-                    disabled={disableMorning}
-                  />
-                  <Field label="Resting HR" name="restingHr" value={form.restingHr} onChange={handleChange} disabled={disableMorning}/>
-                  <Field label="HRV" name="hrv" value={form.hrv} onChange={handleChange} disabled={disableMorning}/>
-                  <Field label="Water Intake (L)" name="water" value={form.water} onChange={handleChange} disabled={disableMorning}/>
-                  <RangeField
-                    label="Stress (1–5)"
-                    name="stress"
-                    value={form.stress}
-                    onChange={val => {
-                      if (disableMorning) return;
-                      setForm(f => ({ ...f, stress: val }));
-                    }}
-                    min={1}
-                    max={5}
-                    step={1}
-                    disabled={disableMorning}
-                  />
-  
-                  <RangeField
-                    label="Motivation (1–5)"
-                    name="motivation"
-                    value={form.motivation}
-                    onChange={val => setForm(f => ({ ...f, motivation: val }))}
-                    min={1}
-                    max={5}
-                    step={1}
-                    disabled={disableMorning}
-                  />
-                  <RangeField
-                    label="Soreness (1–5)"
-                    name="soreness"
-                    value={form.soreness}
-                    onChange={val => setForm(f => ({ ...f, soreness: val }))}
-                    min={1}
-                    max={5}
-                    step={1}
-                    disabled={disableMorning}
-                  />
-                  <RangeField
-                    label="Sleep Quality (1–5)"
-                    name="sleepQuality"
-                    value={form.sleepQuality}
-                    onChange={val => setForm(f => ({ ...f, sleepQuality: val }))}
-                    min={1}
-                    max={5}
-                    step={1}
-                    disabled={disableMorning}
-                  />
+                  {/* first: times + water in 2 cols */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <Field
+                      label="Sleep Start"
+                      type="time"
+                      name="sleepStart"
+                      value={form.sleepStart}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
+                    <Field
+                      label="Sleep End"
+                      type="time"
+                      name="sleepEnd"
+                      value={form.sleepEnd}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
+                    <Field
+                      label="Resting HR"
+                      name="restingHr"
+                      value={form.restingHr}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
+                    <Field
+                      label="HRV"
+                      name="hrv"
+                      value={form.hrv}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
+                    <Field
+                      label="Water Intake (L)"
+                      name="water"
+                      value={form.water}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
+                  </div>
+
+                  {/* then: sliders stacked in one column */}
+                  <div className="mt-6 space-y-4 w-full">
+                    <RangeField
+                      label="Stress (1–5)"
+                      name="stress"
+                      value={form.stress}
+                      onChange={val => {
+                        if (!disableMorning) setForm(f => ({ ...f, stress: val }));
+                      }}
+                      min={1} max={5} step={1}
+                      disabled={disableMorning}
+                    />
+                    <RangeField
+                      label="Motivation (1–5)"
+                      name="motivation"
+                      value={form.motivation}
+                      onChange={val => {
+                        if (!disableMorning) setForm(f => ({ ...f, motivation: val }));
+                      }}
+                      min={1} max={5} step={1}
+                      disabled={disableMorning}
+                    />
+                    <RangeField
+                      label="Soreness (1–5)"
+                      name="soreness"
+                      value={form.soreness}
+                      onChange={val => {
+                        if (!disableMorning) setForm(f => ({ ...f, soreness: val }));
+                      }}
+                      min={1} max={5} step={1}
+                      disabled={disableMorning}
+                    />
+                    <RangeField
+                      label="Sleep Quality (1–5)"
+                      name="sleepQuality"
+                      value={form.sleepQuality}
+                      onChange={val => {
+                        if (!disableMorning) setForm(f => ({ ...f, sleepQuality: val }));
+                      }}
+                      min={1} max={5} step={1}
+                      disabled={disableMorning}
+                    />
+                  </div>
                 </Section>
                 </div>
               </div>  
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <Section title="Workout Log">
-                  <ToggleField label="Trained Today?" name="trained" checked={form.trained} onChange={handleChange} />
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">Session</label>
-                    <select
-                      name="split"
-                      value={form.split}
-                      onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 focus:border-gray-400 focus:ring-0"
-                    >
-                      <option value="">Select session</option>
-                      {sessions.map(sess => (
-                        <option key={sess.id} value={sess.name}>
-                          {sess.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <Field label="Total Sets" name="totalSets" value={form.totalSets} onChange={handleChange} />
-                  <Field label="Failure Sets" name="failureSets" value={form.failureSets} onChange={handleChange} />
-                  <Field label="Total RIR" name="totalRir" value={form.totalRir} onChange={handleChange} />
-                  <Field label="Recovery Rating (0–100)" name="recoveryRating" value={form.recoveryRating} onChange={handleChange} />
-                </Section>
+              <Section title="Workout Log">
+                {/* toggle + session on separate rows */}
+                <div className="flex items-center gap-4">
+                  <ToggleField
+                    label="Trained Today?"
+                    name="trained"
+                    checked={form.trained}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Session
+                  </label>
+                  <select
+                    name="split"
+                    value={form.split}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 focus:border-gray-400 focus:ring-0"
+                  >
+                    <option value="">Select session</option>
+                    {sessions.map(sess => (
+                      <option key={sess.id} value={sess.name}>
+                        {sess.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* then metrics in a 2‑col grid */}
+                <div className="grid grid-cols-2 gap-6 mt-6">
+                  <Field
+                    label="Total Sets"
+                    name="totalSets"
+                    value={form.totalSets}
+                    onChange={handleChange}
+                  />
+                  <Field
+                    label="Failure Sets"
+                    name="failureSets"
+                    value={form.failureSets}
+                    onChange={handleChange}
+                  />
+                  <Field
+                    label="Total RIR"
+                    name="totalRir"
+                    value={form.totalRir}
+                    onChange={handleChange}
+                  />
+                  <Field
+                    label="Your Recovery Rating (0–100)"
+                    name="recoveryRating"
+                    value={form.recoveryRating}
+                    onChange={handleChange}
+                  />
+                </div>
+              </Section>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <Section title="Nutrition">
-                  <Field label="Calories" name="calories" value={form.calories} onChange={handleChange} />
-                  <Field label="Protein (g)" name="protein" value={form.protein} onChange={handleChange} />
-                  <Field label="Carbs (g)" name="carbs" value={form.carbs} onChange={handleChange} />
-                  <Field label="Fat (g)" name="fat" value={form.fat} onChange={handleChange} />
-                </Section>
+              <Section title="Nutrition">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* left column */}
+                    <Field label="Calories"    name="calories" value={form.calories} onChange={handleChange} />
+                    <Field label="Protein (g)" name="protein"  value={form.protein}  onChange={handleChange} />
+                    <Field label="Carbs (g)"   name="carbs"    value={form.carbs}    onChange={handleChange} />
+                    <Field label="Fat (g)"     name="fat"      value={form.fat}      onChange={handleChange} />
+                  {/* right column: empty */}
+                  <div />
+                </div>
+              </Section>
               </div>  
               </div>
 
               {/* Footer */}
               <div className="px-6 py-4 border-t flex justify-end gap-3">
-                <button
-                    onClick={handleSave}
-                    className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
-                  >  
-                  Cancel
-                </button>
                 <button
                   onClick={handleSave}
                   className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"

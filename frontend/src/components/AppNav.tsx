@@ -45,7 +45,11 @@ export default function AppNav({ children }: { children: ReactNode }) {
               <div className="flex items-center gap-4">
                 {profile && (
                   <>
-                    <Link to="/profile" aria-label="User profile" className="hidden sm:inline-block">
+                    <Link
+                      to="/profile"
+                      aria-label="User profile"
+                      className="block sm:inline-block"
+                    >
                       <Avatar user={profile} size={2} className="w-8 h-8" />
                     </Link>
                     <button
@@ -83,6 +87,20 @@ export default function AppNav({ children }: { children: ReactNode }) {
                     </button>
                   </li>
                 ))}
+
+              <li>
+                  <button
+                    onClick={() => {
+                      navigate('/profile');
+                      if (document.activeElement instanceof HTMLElement) {
+                        document.activeElement.blur();
+                      }
+                    }}
+                    className={pathname === '/profile' ? 'text-black' : 'text-gray-700 hover:text-black'}
+                  >
+                    Profile
+                  </button>
+                </li>
               </ul>
             </Disclosure.Panel>
           </>

@@ -1,12 +1,12 @@
+// src/pages/CalendarPage.tsx
+import React, { useState } from 'react';
 import dayjs from 'dayjs';
-import { useState } from 'react';
 import CalendarHeader from '../components/CalendarHeader';
 import CalendarGrid   from '../components/CalendarGrid';
 import { useCalendarData } from '../hooks/useCalendarData';
 import DailyLogModal from '../components/DailyLogModal';
-import { useDailyLog, useUpsertDailyLog } from '../components/DailyLog';
 
-/* small helpers for cards + legend (same as before) */
+/* small helper for the header cards */
 function Card({ title, value }: { title: string | number; value: string | number }) {
   return (
     <div className="border rounded-lg py-4 bg-white text-center">
@@ -16,22 +16,25 @@ function Card({ title, value }: { title: string | number; value: string | number
   );
 }
 
+/* updated Legend: title + flex‑wrap container */
 function Legend() {
   return (
-    <div className="flex gap-4 mt-6 text-xs">
-      <span className="font-semibold">Recovery Zones</span>
-      {[
-        ['bg-green-400',  'Excellent (>75)'],
-        ['bg-yellow-400', 'Good (55-75)'],
-        ['bg-orange-400', 'Fair (40-55)'],
-        ['bg-red-500',    'Poor (<40)'],
-        ['bg-gray-200',   'Rest / Pending'],
-      ].map(([c, l]) => (
-        <div key={l} className="flex items-center gap-1">
-          <div className={`w-4 h-4 rounded-full ${c}`} />
-          <span>{l}</span>
-        </div>
-      ))}
+    <div className="mt-6 text-xs">
+      <p className="font-semibold mb-2 text-center">Recovery Zones</p>
+      <div className="flex flex-wrap justify-center gap-4">
+        {[
+          ['bg-green-400',  'Excellent (>75)'],
+          ['bg-yellow-400', 'Good (55–75)'],
+          ['bg-orange-400', 'Fair (40–55)'],
+          ['bg-red-500',    'Poor (<40)'],
+          ['bg-gray-200',   'Rest / Pending'],
+        ].map(([c, label]) => (
+          <div key={label} className="flex items-center gap-1">
+            <span className={`w-4 h-4 rounded-full ${c}`} />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -82,20 +85,22 @@ export default function CalendarPage() {
         </div>
       )}
 
-      <div className="border border-black/10 rounded-lg p-3">
-      <CalendarGrid
-        view={view}
-        cursor={cursor}
-        dayStates={dayStates}
-        onSelect={(d) => setSelectedDate(d.format('YYYY-MM-DD'))}
-      />
+      {/* make the calendar horizontally scrollable on small screens */}
+      <div className="overflow-x-auto border border-black/10 rounded-lg p-3">
+        <CalendarGrid
+          view={view}
+          cursor={cursor}
+          dayStates={dayStates}
+          onSelect={d => setSelectedDate(d.format('YYYY-MM-DD'))}
+        />
       </div>
 
       {view === 'month' && <Legend />}
+
       {selectedDate && (
         <DailyLogModal
           date={selectedDate}
-          isOpen={true}
+          isOpen
           onClose={() => setSelectedDate(null)}
         />
       )}

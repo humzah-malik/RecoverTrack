@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header, File, UploadFile, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import User
+from app.models import User, DailyLog
 from app.auth import (
     hash_password, verify_password,
     create_access_token, create_refresh_token,
@@ -52,8 +52,20 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     }
 
 @router.get("/me", response_model=UserOut)
-def me(current_user: User = Depends(get_current_user)):
-    return current_user
+def me(
+     current_user: User      = Depends(get_current_user),
+     db: Session             = Depends(get_db),
+ ):
+     # count how many daily‑logs this user has
+     total = db.query(DailyLog).filter(DailyLog.user_id == current_user.id).count()
+     current_user.total_logs = total
+
+     # if your model.created_at is a DateTime, convert to a date
+     # (Pydantic’s `created_at: Date` validator insists on no time component)
+     if hasattr(current_user, "created_at") and hasattr(current_user.created_at, "date"):
+         current_user.created_at = current_user.created_at.date()
+
+     return current_user
 
 @router.post("/refresh", response_model=Token)
 def refresh(authorization: str = Header(...)):
