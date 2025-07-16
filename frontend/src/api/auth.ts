@@ -62,3 +62,17 @@ export function refreshToken(refresh_token: string) {
     )
     .then((r) => r.data);
 }
+
+export function forgotPassword(email: string) {
+    return api.post('/auth/forgot-password', { email });
+  }
+
+  export function resetPassword(token: string, password: string) {
+    return api.post('/auth/reset-password', { token, new_password: password });
+  }
+  export function confirmEmail(token: string) {
+    return api.post('/auth/confirm-email', { token });
+  }
+  export function resendConfirmation(email: string) {
+    return api.post('/auth/resend-confirmation', { email });
+  }

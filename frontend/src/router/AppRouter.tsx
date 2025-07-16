@@ -13,6 +13,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import ThemeToggle from '../components/ThemeToggle'
 import AppNav from '../components/AppNav';
+import ForgotPassword    from '../pages/ForgotPassword'
+import ConfirmEmailSent  from '../pages/ConfirmEmailSent'
 
 // A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -36,6 +38,8 @@ export default function AppRouter() {
         <Route path="auth">
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot-password"       element={<ForgotPassword />} />
+          <Route path="confirm-email-sent"   element={<ConfirmEmailSent />} />
         </Route>
 
         {/* Protected Routes */}
