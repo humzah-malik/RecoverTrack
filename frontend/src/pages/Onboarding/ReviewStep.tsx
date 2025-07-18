@@ -75,7 +75,7 @@ export function ReviewStep({ profile, onPrev, onNext }: Props) {
 
         {/* calories */}
         <div className="p-4 border rounded-lg space-y-2">
-          <label className="block font-medium">Maintenance Calories</label>
+          <label className="block font-medium">Goal Calories</label>
           <input
             type="number"
             {...register('maintenance_calories', { valueAsNumber: true })}
@@ -102,20 +102,20 @@ export function ReviewStep({ profile, onPrev, onNext }: Props) {
 
         {/* nav buttons */}
         <div className="flex justify-between pt-2">
+        <button
+          type="button"
+          onClick={onPrev}
+          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+        >
+          ← Back
+        </button>
           <button
-            type="button"
-            onClick={onPrev}
-            className="btn-secondary px-5 py-2"
-          >
-            ← Back
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary px-6 py-2"
-          >
-            Next Step →
-          </button>
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+        >
+          Next Step →
+        </button>
         </div>
       </form>
     </div>

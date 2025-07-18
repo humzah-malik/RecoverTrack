@@ -133,15 +133,6 @@ export default function Login() {
             >
               {isSubmitting ? 'Logging in…' : 'Log In'}
             </button>
-
-            <div className="text-center">
-              <a
-                href="#"
-                className="text-gray-500 text-sm hover:underline"
-              >
-                Forgot Password?
-              </a>
-            </div>
           </form>
         </section>
       </main>

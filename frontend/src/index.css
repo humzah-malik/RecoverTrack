@@ -3,6 +3,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base neutrals for light mode (will be overridden by palette) */
+:root {
+  --bg:            #ffffff;
+  --surface:       #ffffff;
+  --surface-alt:   #f3f4f6;
+  --border:        #e5e7eb;
+  --text-primary:  #111827;
+  --text-muted:    #6b7280;
+  --accent:        #00b894; /* default teal */
+  --accent-hover:  #00a383;
+}
+
+/* ── Palette 1 CHARCOAL LIGHT ───────────────────────── */
+.palette-charcoal {          /* add to <body> to activate */
+  --bg:            #f9fafb;
+  --surface:       #ffffff;
+  --surface-alt:   #f3f4f6;
+  --border:        #e5e7eb;
+  --text-primary:  #111827;
+  --text-muted:    #6b7280;
+  --accent:        #00b894;
+  --accent-hover:  #00a383;
+}
+
+/* ── Palette 2 NAVY LIGHT ───────────────────────────── */
+.palette-navy {
+  --bg:            #ffffff;
+  --surface:       #ffffff;
+  --surface-alt:   #f3f4f6;
+  --border:        #e5e7eb;
+  --text-primary:  #0f172a;
+  --text-muted:    #475569;
+  --accent:        #b6862c;
+  --accent-hover:  #cf9b3a;
+}
+
+/* ── DARK MODE (Forest Midnight) ────────────────────── */
+.dark {
+  --bg:            #1b3a57;
+  --surface:       #2c3e50;
+  --surface-alt:   #344c69;
+  --border:        #34506f;
+  --text-primary:  #f0f0f0;
+  --text-muted:    #a4c8e1;
+  --accent:        #a4c8e1;
+  --accent-hover:  #c0dcf2;
+}
+
 /* 2) Import Inter */
 
 /* 3) Minimal overrides */

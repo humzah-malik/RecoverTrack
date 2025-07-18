@@ -37,7 +37,7 @@ def update_profile(
     user: User = db.query(User).get(current_user.id)
     incoming = updates.dict(exclude_unset=True)
 
-     # Validate split_template_id if provided
+    # Validate split_template_id if provided
     if "split_template_id" in incoming:
         split_id = incoming["split_template_id"]
         tpl = db.query(SplitTemplate).filter(SplitTemplate.id == split_id).first()
@@ -61,6 +61,11 @@ def update_profile(
 
     db.commit()
     db.refresh(user)
+
+    # recompute how many daily-logs this user has for the response model
+    total = db.query(DailyLog).filter(DailyLog.user_id == user.id).count()
+    user.total_logs = total
+
     return user
 
 @router.post("/me/reset", status_code=204)

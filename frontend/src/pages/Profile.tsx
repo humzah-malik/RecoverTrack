@@ -332,6 +332,13 @@ export default function Profile() {
             Reset Password
           </button>
           <button
+            onClick={() => updateMutation.mutate(form)}
+            disabled={updateMutation.isLoading}
+            className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-black text-white hover:bg-gray-800"
+          >
+            Update Profile
+          </button>
+          <button
             onClick={openDelete}
             disabled={deleteMutation.isLoading}
             className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700"

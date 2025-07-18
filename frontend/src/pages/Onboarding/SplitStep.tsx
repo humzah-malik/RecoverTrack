@@ -1,5 +1,5 @@
 // src/pages/Onboarding/SplitStep.tsx
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,11 +24,11 @@ export function SplitStep({
 }: Props) {
   const navigate = useNavigate();
   const {
-    register,
+    control,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<{ split_template_id: string }>({
-    defaultValues: { split_template_id: defaultSplitId },
+    defaultValues: { split_template_id: defaultSplitId || '' },
   });
 
   /* ---------- empty-state ------------------------------------------------ */
@@ -57,7 +57,7 @@ export function SplitStep({
       {/* progress */}
       <div className="mb-8">
         <div className="flex justify-between text-sm text-gray-500 mb-2 px-1">
-          <span>Step&nbsp;4&nbsp;of&nbsp;4</span>
+          <span>Step 4 of 4</span>
           <span>Workout Split</span>
         </div>
         <div className="h-2 w-full bg-gray-200 rounded">
@@ -79,49 +79,52 @@ export function SplitStep({
           </p>
         </div>
 
-        <div className="space-y-3">
-        {splits.map((s) => (
-            <div key={s.id}>
-            {/* hidden radio = “peer” */}
-            <input
-                type="radio"
-                id={s.id}
-                value={s.id}
-                {...register('split_template_id')}
-                className="peer hidden"
-            />
-
-            {/* clickable card */}
-            <label
-                htmlFor={s.id}
-                className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer
-                        hover:bg-gray-50
-                        peer-checked:ring-2 peer-checked:ring-black peer-checked:border-black"
-            >
-                <span>
-                <strong>{s.name}</strong>{' '}
-                <span className="text-gray-500">({s.type})</span>
-                </span>
-            </label>
+        {/* controlled list */}
+        <Controller
+          name="split_template_id"
+          control={control}
+          render={({ field: { value, onChange } }) => (
+            <div className="space-y-3">
+              {splits.map((s) => {
+                const isSelected = value === s.id;
+                return (
+                  <div key={s.id}>
+                    <label
+                      onClick={() => onChange(isSelected ? '' : s.id)}
+                      className={
+                        `flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ` +
+                        (isSelected
+                          ? 'ring-2 ring-black border-black'
+                          : 'border-gray-200')
+                      }
+                    >
+                      <span>
+                        <strong>{s.name}</strong>{' '}
+                        <span className="text-gray-500">({s.type})</span>
+                      </span>
+                    </label>
+                  </div>
+                );
+              })}
             </div>
-        ))}
-        </div>
+          )}
+        />
 
         {/* nav buttons */}
         <div className="flex justify-between pt-2">
           <button
             type="button"
             onClick={onPrev}
-            className="btn-secondary px-5 py-2"
+            className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
           >
-            ←&nbsp;Back
+            ← Back
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary px-6 py-2"
+            className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
           >
-            Finish&nbsp;✔
+            Finish
           </button>
         </div>
       </form>

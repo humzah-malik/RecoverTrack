@@ -229,12 +229,12 @@ export function ProfileStep({ defaultValues, onNext }: Props) {
         {/* next button */}
         <div className="flex justify-end">
           <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary flex items-center gap-2"
-          >
-            Next&nbsp;Step →
-          </button>
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+        >
+          Next Step →
+        </button>
         </div>
       </form>
     </div>

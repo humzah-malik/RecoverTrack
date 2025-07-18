@@ -57,7 +57,10 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
         {/* goal */}
         <div>
           <label className="block text-sm font-medium mb-1">Goal</label>
-          <select {...register('goal')} className="input w-full">
+          <select
+          {...register('goal')}
+          className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+        >
             <option value="gain muscle">Gain Muscle</option>
             <option value="maintenance">Maintenance</option>
             <option value="fat loss">Fat Loss</option>
@@ -73,7 +76,10 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
           <label className="block text-sm font-medium mb-1">
             Activity Level
           </label>
-          <select {...register('activity_level')} className="input w-full">
+          <select
+          {...register('activity_level')}
+          className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+            >  
             <option value="low">Low</option>
             <option value="moderate">Moderate</option>
             <option value="high">High</option>
@@ -103,7 +109,8 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
         </div>
         <div>
             <label className="block text-sm font-medium mb-1">Unit</label>
-            <select {...register('weight_target_unit')} className="input w-full">
+            <select {...register('weight_target_unit')} className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+        >
             <option value="kg">kg</option>
             <option value="lb">lb</option>
             </select>
@@ -113,19 +120,19 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
         {/* nav buttons */}
         <div className="flex justify-between pt-2">
           <button
-            type="button"
-            onClick={onPrev}
-            className="btn-secondary px-5 py-2"
-          >
-            ← Back
-          </button>
+          type="button"
+          onClick={onPrev}
+          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+        >
+          ← Back
+        </button>
           <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary flex items-center gap-2 px-6 py-2"
-          >
-            Next Step →
-          </button>
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+        >
+          Next Step →
+        </button>
         </div>
       </form>
     </div>

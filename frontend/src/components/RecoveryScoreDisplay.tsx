@@ -27,17 +27,28 @@ export default function RecoveryScoreDisplay({ date }: Props) {
 
   // After 5pm: show "available later" banner
   if (hour >= 17) {
+    // Move score declaration here
+    const score = data && data.predicted_recovery_rating != null ? Math.round(data.predicted_recovery_rating) : 0;
     return (
-      <>
-        <div className="w-24 h-24 rounded-full border-2 border-gray-300 flex items-center justify-center mb-4">
-          <span className="text-2xl font-extrabold">--</span>
-        </div>
-        <p className="font-semibold mb-1">No recovery score yet</p>
-        <p className="text-gray-500 text-xs">
-          Available after tomorrow's morning check-in
-        </p>
-      </>
-    )
+          <>
+            {/* outer ring: black = percent of circumference, gray = remainder */}
+            <div
+              className="w-24 h-24 mb-4 rounded-full flex items-center justify-center"
+              style={{
+                background: `conic-gradient(
+                  black ${score * 3.6}deg,
+                  #e5e7eb 0deg
+                )`,
+              }}
+            >
+              {/* inner circle to mask out the middle */}
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
+                <span className="text-2xl font-extrabold">{score}</span>
+              </div>
+            </div>
+            <p className="font-semibold mb-1">Recovery Score</p>
+          </>
+        )
   }
 
   // Dev debug
@@ -66,8 +77,15 @@ export default function RecoveryScoreDisplay({ date }: Props) {
   const score = Math.round(data.predicted_recovery_rating)
   return (
     <>
-      <div className="w-24 h-24 rounded-full border-2 border-gray-300 flex items-center justify-center mb-4">
-        <span className="text-2xl font-extrabold">{score}</span>
+      <div
+        className="w-24 h-24 mb-4 rounded-full flex items-center justify-center"
+        style={{
+          background: `conic-gradient(black ${score * 3.6}deg, #e5e7eb 0deg)`,
+        }}
+      >
+        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
+          <span className="text-2xl font-extrabold">{score}</span>
+        </div>
       </div>
       <p className="font-semibold mb-1">Recovery Score</p>
     </>

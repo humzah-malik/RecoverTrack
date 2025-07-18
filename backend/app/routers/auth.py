@@ -8,7 +8,7 @@ from app.auth import (
     decode_token
 )
 from uuid import uuid4
-from app.schemas import UserCreate, UserLogin, UserOut, Token
+from app.schemas import UserCreate, UserLogin, UserOut, UserUpdate, Token
 from app.supabase_admin import supabase_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -35,10 +35,21 @@ def get_current_user(authorization: str = Header(...), db: Session = Depends(get
 
 @router.post("/register", response_model=UserOut, status_code=201)
 def register(data: UserCreate, db: Session = Depends(get_db)):
+    # 1) make sure the email isn’t already taken
     if db.query(User).filter_by(email=data.email).first():
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
-    new = User(email=data.email, password_hash=hash_password(data.password))
-    db.add(new); db.commit(); db.refresh(new)
+
+    # 2) create & persist the new User
+    new = User(email=data.email, password_hash=hash_password(data.password), has_completed_onboarding=False)
+    db.add(new)
+    db.commit()
+    db.refresh(new)
+
+    # 3) satisfy UserOut’s required fields
+    new.total_logs = 0
+    new.has_completed_onboarding = False
+
+    # 4) return it—now Pydantic can build a full UserOut with no missing keys
     return new
 
 @router.post("/login", response_model=Token)

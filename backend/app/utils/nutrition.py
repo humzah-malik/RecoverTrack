@@ -47,7 +47,7 @@ def compute_nutrition_profile(user: User) -> Tuple[int, Dict[str,int]]:
         cal_adjust = 0
 
     maintenance_cals = int(round(tdee + cal_adjust))
-
+    
     # 3) Macro targets
     goal_key = user.goal.lower() if user.goal else "maintenance"
     grams_per_kg = MACROS_G_PER_KG.get(goal_key, MACROS_G_PER_KG["maintenance"])

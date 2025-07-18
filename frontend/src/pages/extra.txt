@@ -22,3 +22,11 @@
               Continue with Google
             </button>
 
+<div className="text-center">
+              <a
+                href="#"
+                className="text-gray-500 text-sm hover:underline"
+              >
+                Forgot Password?
+              </a>
+            </div>
