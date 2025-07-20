@@ -28,7 +28,7 @@ export default function ThemeToggle() {
         className={
           // track
           `w-14 h-8 flex items-center p-1 rounded-full transition-colors
-           ${current === 'dark' ? 'bg-surface-dark' : 'bg-gray-300'}`
+           ${current === 'dark' ? 'bg-surface-alt' : 'bg-gray-300'}`
         }
       >
         <div

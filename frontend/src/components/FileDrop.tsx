@@ -39,8 +39,14 @@ export default function FileDrop({ onDone }: Props) {
 
   return (
     <div
-      onDragEnter={prevent} onDragOver={prevent} onDrop={drop}
-      className="border-2 border-dashed border-gray-300 rounded-md max-w-xl mx-auto py-16 flex flex-col items-center justify-center gap-3"
+      onDragEnter={prevent}
+      onDragOver={prevent}
+      onDrop={drop}
+      className="
+        card-base file-drop-zone max-w-xl mx-auto py-16
+        flex flex-col items-center justify-center gap-3
+        border-2 border-dashed border-border
+      "
     >
       {fileName && (
         <p className="text-gray-700 text-sm mb-2">
@@ -53,9 +59,9 @@ export default function FileDrop({ onDone }: Props) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="bg-gray-900 text-white text-sm rounded-md px-5 py-2 hover:bg-gray-800"
+        className="btn-dark px-5 py-2 text-sm"
       >
-        Choose File
+        Choose File
       </button>
       <input
         type="file"
@@ -73,8 +79,11 @@ export default function FileDrop({ onDone }: Props) {
             <span>Uploading file…</span>
             <span>{progress}%</span>
           </div>
-          <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-1 bg-black transition-all" style={{ width: `${progress}%` }} />
+          <div className="w-full h-1 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-1 bg-[var(--accent)] transition-all"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
       )}

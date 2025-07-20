@@ -174,14 +174,29 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
             enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
             leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
           >
-            <div className="inline-block w-full max-w-2xl my-8 overflow-hidden text-left align-middle transform bg-white shadow-md rounded-xl">
+            <div
+              className="
+                inline-block w-full max-w-2xl my-8 overflow-hidden text-left align-middle
+                transform rounded-xl ring-1 ring-border shadow-xl
+                bg-white dark:bg-[var(--surface)]
+              "
+            >
               {/* Header */}
-              <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">  
-                <div>
-                  <h2 className="text-2xl font-extrabold text-gray-900">Recovery Log</h2>
-                  <p className="text-sm text-gray-500">{date}</p>
-                </div>
-                <button onClick={onClose} className="text-gray-500 hover:text-black">
+              <div className="px-6 py-5 border-b border-gray-200 dark:border-[var(--divider)]
+                flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-extrabold text-gray-900
+                              dark:text-[var(--text-primary)]">
+                  Recovery Log
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-[var(--text-muted)]">{date}</p>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-black
+                          dark:text-[var(--text-muted)] dark:hover:text-[var(--text-primary)]"
+              >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -192,7 +207,11 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
 
               {/* Scrollable Body */}
               <div className="max-h-[70vh] overflow-y-auto px-6 py-6 space-y-6">
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="
+                bg-white dark:bg-[var(--surface-alt)]
+                border border-gray-200 dark:border-[var(--border)]
+                rounded-lg p-6
+              ">
                 <div className={disableMorning ? 'opacity-50 pointer-events-none' : ''}>
                 <Section title="Sleep & Wellness">
                   {/* first: times + water in 2 cols */}
@@ -283,7 +302,11 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                 </div>
               </div>  
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="
+                bg-white dark:bg-[var(--surface-alt)]
+                border border-gray-200 dark:border-[var(--border)]
+                rounded-lg p-6
+              ">
               <Section title="Workout Log">
                 {/* toggle + session on separate rows */}
                 <div className="flex items-center gap-4">
@@ -295,14 +318,26 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                   />
                 </div>
                 <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2 dark:text-white">
                     Session
                   </label>
                   <select
                     name="split"
                     value={form.split}
                     onChange={handleChange}
-                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 focus:border-gray-400 focus:ring-0"
+                    className="
+                      w-full rounded-md px-4 py-2 text-sm
+                      /* light‑mode */
+                      bg-gray-50  border border-gray-300  text-gray-900
+                      focus:outline-none focus:border-gray-400
+
+                      /* dark‑mode */
+                      dark:bg-[var(--input-bg)]
+                      dark:border-[var(--input-border)]
+                      dark:text-[var(--text-primary)]
+                      dark:placeholder-[var(--text-muted)]
+                      dark:focus:border-[var(--input-border-focus)]
+                    "
                   >
                     <option value="">Select session</option>
                     {sessions.map(sess => (
@@ -343,7 +378,11 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
               </Section>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="
+                bg-white dark:bg-[var(--surface-alt)]
+                border border-gray-200 dark:border-[var(--border)]
+                rounded-lg p-6
+              ">
               <Section title="Nutrition">
                 <div className="grid grid-cols-2 gap-6">
                   {/* left column */}
@@ -355,14 +394,14 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                   <div />
                 </div>
               </Section>
-              </div>  
+              </div>
               </div>
 
               {/* Footer */}
               <div className="px-6 py-4 border-t flex justify-end gap-3">
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+                  className="btn btn-primary"
                 >
                   Save Log
                 </button>
@@ -379,10 +418,26 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
 function Field({ label, ...props }: any) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-800 mb-2">{label}</label>
+      <label
+        className="
+          block mb-2 text-sm font-semibold
+          text-gray-800 dark:text-[var(--text-primary)]
+        "
+      >
+        {label}
+      </label>
+
       <input
         {...props}
-        className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-900 focus:border-gray-400 focus:ring-0"
+        className="
+          w-full rounded-md px-4 py-2 text-sm
+          border border-gray-300 dark:border-[var(--input-border)]
+          bg-gray-50 dark:bg-[var(--input-bg)]
+          text-gray-900 dark:text-[var(--text-primary)]
+          placeholder-gray-500 dark:placeholder-[var(--text-muted)]
+          focus:outline-none
+          focus:border-gray-400 dark:focus:border-[var(--input-border-focus)]
+        "
       />
     </div>
   );
@@ -390,7 +445,7 @@ function Field({ label, ...props }: any) {
 
 function ToggleField({ label, name, checked, onChange }: any) {
   return (
-    <label className="relative inline-flex items-center cursor-pointer">
+    <label className="relative inline-flex items-center cursor-pointer select-none">
       <input
         type="checkbox"
         name={name}
@@ -398,9 +453,31 @@ function ToggleField({ label, name, checked, onChange }: any) {
         onChange={onChange}
         className="sr-only peer"
       />
-      <div className="w-11 h-6 bg-gray-300 rounded-full peer-focus:ring-4 peer-focus:ring-gray-300 peer-checked:bg-gray-900 transition-colors" />
-      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-5 transition-transform" />
-      <span className="ml-3 text-sm font-medium text-gray-900 select-none">{label}</span>
+
+      {/* track */}
+      <div
+        className="
+          w-11 h-6 rounded-full transition-colors
+          border border-gray-400 dark:border-[var(--divider)]
+          bg-gray-200 dark:bg-[var(--input-bg)]
+          peer-focus:ring-4 peer-focus:ring-gray-300/40 dark:peer-focus:ring-[var(--focus-ring-alt)]/40
+          peer-checked:bg-[var(--accent-alt)] peer-checked:border-transparent
+        "
+      />
+
+      {/* knob */}
+      <div
+        className="
+          absolute left-1 top-1 w-4 h-4 rounded-full transition-transform
+          bg-white dark:bg-[var(--surface)]
+          ring-1 ring-gray-300 dark:ring-[var(--border)]
+          peer-checked:translate-x-5
+        "
+      />
+
+      <span className="ml-3 text-sm font-medium text-gray-900 dark:text-[var(--text-primary)]">
+        {label}
+      </span>
     </label>
   );
 }
@@ -408,7 +485,7 @@ function ToggleField({ label, name, checked, onChange }: any) {
 function Section({ title, children }: any) {
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
       {children}
     </div>
   );

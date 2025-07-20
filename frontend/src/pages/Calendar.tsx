@@ -9,9 +9,17 @@ import DailyLogModal from '../components/DailyLogModal';
 /* small helper for the header cards */
 function Card({ title, value }: { title: string | number; value: string | number }) {
   return (
-    <div className="border rounded-lg py-4 bg-white text-center">
-      <p className="text-xs text-gray-600">{title}</p>
-      <p className="text-xl font-bold">{value}</p>
+    <div
+      className="
+        card-base flex flex-col items-center justify-center
+        py-4
+        bg-white dark:bg-[var(--surface-alt)]
+      "
+    >
+      <p className="text-xs text-gray-600 dark:text-[var(--text-muted)]">{title}</p>
+      <p className="text-xl font-bold text-gray-900 dark:text-[var(--text-primary)]">
+        {value}
+      </p>
     </div>
   );
 }
@@ -22,16 +30,19 @@ function Legend() {
     <div className="mt-6 text-xs">
       <p className="font-semibold mb-2 text-center">Recovery Zones</p>
       <div className="flex flex-wrap justify-center gap-4">
-        {[
-          ['bg-green-400',  'Excellent (>75)'],
-          ['bg-yellow-400', 'Good (55–75)'],
-          ['bg-orange-400', 'Fair (40–55)'],
-          ['bg-red-500',    'Poor (<40)'],
-          ['bg-gray-200',   'Rest / Pending'],
+      {[
+          ['var(--zone-excellent)', 'Excellent (>75)'],
+          ['var(--zone-good)',      'Good (55–75)'],
+          ['var(--zone-fair)',      'Fair (40–55)'],
+          ['var(--zone-poor)',      'Poor (<40)'],
+          ['var(--zone-track)',     'Rest / Pending'],
         ].map(([c, label]) => (
           <div key={label} className="flex items-center gap-1">
-            <span className={`w-4 h-4 rounded-full ${c}`} />
-            <span>{label}</span>
+            <span
+              className="w-4 h-4 rounded-full"
+              style={{ background:c as string }}
+            />
+            <span className="text-gray-800 dark:text-[var(--text-primary)]">{label}</span>
           </div>
         ))}
       </div>
@@ -77,16 +88,30 @@ export default function CalendarPage() {
       </div>
 
       {stats.pendingDays >= 7 && (
-        <div className="flex justify-between items-center border p-4 rounded-lg mb-6 text-sm">
-          <span>Want to fill the gaps? Try bulk import</span>
-          <a href="/import" className="px-4 py-2 bg-black text-white rounded-md">
-            Import Data
+        <div
+          className="
+            card-base p-4 mb-6 flex justify-between items-center text-sm
+            bg-white dark:bg-[var(--surface-alt)]
+          "
+        >
+          <span className="text-gray-800 dark:text-[var(--text-primary)]">
+            Want to fill the gaps? Try bulk import
+          </span>
+
+          <a href="/import" className="btn-dark px-4 py-2 rounded-md">
+            Import Data
           </a>
         </div>
       )}
 
       {/* make the calendar horizontally scrollable on small screens */}
-      <div className="overflow-x-auto border border-black/10 rounded-lg p-3">
+      <div
+        className="
+          overflow-x-auto
+          card-base p-4
+          bg-white dark:bg-[var(--surface)]
+        "
+      >
         <CalendarGrid
           view={view}
           cursor={cursor}
@@ -95,7 +120,7 @@ export default function CalendarPage() {
         />
       </div>
 
-      {view === 'month' && <Legend />}
+      {<Legend />}
 
       {selectedDate && (
         <DailyLogModal

@@ -4,60 +4,65 @@ import { NavLink } from 'react-router-dom'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
-      {/* Everything stays max-w-md (28 rem) and is centred */}
-      <div className="w-full max-w-md">
-        {/* ── Brand header ────────────────────────────────── */}
-        <header className="flex items-center justify-center space-x-2 mb-4">
-          <i className="fas fa-wave-square text-2xl" />
-          <h1 className="text-2xl font-semibold">RecoverTrack</h1>
-        </header>
-
-        {/* ── Welcome copy ───────────────────────────────── */}
-        <section className="text-center mb-6">
-          <h2 className="text-lg font-semibold mb-1">Welcome to RecoverTrack</h2>
-          <p className="text-gray-500 text-sm">
+    <div
+      className="
+        min-h-screen flex items-center justify-center p-4
+        bg-[var(--bg)] text-[var(--text-primary)]
+      "
+    >
+      <main className="w-full max-w-sm space-y-6">
+        {/* ── Brand header ─────────────────────────────── */}
+        <header className="text-center space-y-1">
+          <i className="fas fa-wave-square text-3xl text-[var(--accent)]" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            RecoverTrack
+          </h1>
+          <p className="text-muted text-sm">
             Track your fitness recovery journey
           </p>
-        </section>
+        </header>
 
-        {/* ── Card shell (matches mock-up) ───────────────── */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-          {/* Tabs */}
-          <nav className="flex border-b border-gray-200 dark:border-gray-700 rounded-t-lg">
+        {/* ── Card shell for auth forms ────────────────── */}
+        <div className="card-glow hoverable">
+          <section className="card-base p-0 rounded-lg overflow-hidden">
+            {/* Tabs */}
+            <nav className="grid grid-cols-2 border-b border-[var(--border)]">
             <NavLink
-              to="/auth/login"
-              end
-              className={({ isActive }) =>
+                to="/auth/login"
+                end
+                className={({ isActive }) =>
                 [
-                  'flex-1 py-3 text-center font-semibold rounded-t-lg',
-                  isActive
-                    ? 'text-black bg-white border-b-2 border-black dark:bg-gray-800'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400',
+                    'py-3 text-center font-semibold',
+                    // ALWAYS show 2‑px border bottom so the card outline is flat.
+                    isActive
+                    ? 'border-b-2 border-[var(--accent)] text-[var(--text-primary)]'
+                    : 'border-b-2 border-transparent text-muted hover:text-[var(--text-primary)]',
                 ].join(' ')
-              }
+                }
             >
-              Log In
+                Login
             </NavLink>
-            <NavLink
-              to="/auth/register"
-              className={({ isActive }) =>
-                [
-                  'flex-1 py-3 text-center font-semibold rounded-t-lg',
-                  isActive
-                    ? 'text-black bg-white border-b-2 border-black dark:bg-gray-800'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400',
-                ].join(' ')
-              }
-            >
-              Register
-            </NavLink>
-          </nav>
 
-          {/* Form outlet — padded exactly like mock-up */}
-          <div className="p-6 space-y-5">{children}</div>
-        </section>
-      </div>
+            <NavLink
+                to="/auth/register"
+                className={({ isActive }) =>
+                [
+                    'py-3 text-center font-semibold',
+                    isActive
+                    ? 'border-b-2 border-[var(--accent)] text-[var(--text-primary)]'
+                    : 'border-b-2 border-transparent text-muted hover:text-[var(--text-primary)]',
+                ].join(' ')
+                }
+            >
+                Register
+            </NavLink>
+            </nav>
+
+            {/* Form content */}
+            <div className="p-6 space-y-5">{children}</div>
+          </section>
+        </div>
+      </main>
     </div>
   )
 }

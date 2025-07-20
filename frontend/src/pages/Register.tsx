@@ -7,9 +7,7 @@ import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import AuthLayout from '../layouts/AuthLayout'
 
-/* ──────────────────────────────────────────────────────────
-   Validation
-   ────────────────────────────────────────────────────────── */
+/* ── validation schema ─────────────────────────────── */
 const registerSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'At least 6 characters' }),
@@ -27,8 +25,7 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) })
 
-  /* ──────────────────────────────────────────────────────── */
-  const onSubmit = async (data: RegisterForm) => {
+  async function onSubmit(data: RegisterForm) {
     setApiError(null)
     try {
       await registerUser(data)
@@ -42,92 +39,69 @@ export default function Register() {
     }
   }
 
-  /* ──────────────────────────────────────────────────────── */
   return (
     <AuthLayout>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-5"
-        noValidate
+      {apiError && <p className="text-sm text-danger">{apiError}</p>}
+
+      <Input
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="Enter your email"
+        register={register('email')}
+        error={errors.email?.message}
+        icon="fas fa-envelope"
+      />
+
+      <Input
+        id="password"
+        label="Password"
+        type="password"
+        placeholder="Enter your password"
+        register={register('password')}
+        error={errors.password?.message}
+        icon="fas fa-lock"
+      />
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        onClick={handleSubmit(onSubmit)}
+        className="btn btn-dark w-full"
       >
-        {apiError && (
-          <p className="text-sm text-danger">{apiError}</p>
-        )}
-
-        {/* ── Email ─────────────────────────────────────── */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-semibold mb-1"
-          >
-            Email
-          </label>
-          <div className="relative">
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              {...register('email')}
-              className="w-full rounded-md border border-gray-300 py-2.5 pl-3 pr-10
-                         text-gray-700 placeholder-gray-400
-                         focus:border-primary focus:ring-1 focus:ring-primary
-                         dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200
-                         dark:placeholder-gray-500"
-            />
-            <i
-              className="fas fa-envelope absolute right-3 top-1/2 -translate-y-1/2
-                         text-gray-400 text-lg pointer-events-none"
-            />
-          </div>
-          {errors.email && (
-            <p className="mt-1 text-sm text-danger">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        {/* ── Password ──────────────────────────────────── */}
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-semibold mb-1"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              {...register('password')}
-              className="w-full rounded-md border border-gray-300 py-2.5 pl-3 pr-10
-                         text-gray-700 placeholder-gray-400
-                         focus:border-primary focus:ring-1 focus:ring-primary
-                         dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200
-                         dark:placeholder-gray-500"
-            />
-            <i
-              className="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2
-                         text-gray-400 text-lg pointer-events-none"
-            />
-          </div>
-          {errors.password && (
-            <p className="mt-1 text-sm text-danger">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        {/* ── Submit ────────────────────────────────────── */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-md bg-black py-2.5 text-white
-                     transition-opacity disabled:opacity-50"
-        >
-          {isSubmitting ? 'Creating…' : 'Register'}
-        </button>
-      </form>
+        {isSubmitting ? 'Creating…' : 'Register'}
+      </button>
     </AuthLayout>
+  )
+}
+
+/* ─ reusable themed input field ─ */
+function Input({
+  id,
+  label,
+  icon,
+  register,
+  error,
+  ...rest
+}: {
+  id: string
+  label: string
+  icon: string
+  register: any
+  error?: string
+} & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-semibold mb-1">
+        {label}
+      </label>
+      <div className="relative">
+        <input id={id} {...register} {...rest} className="input w-full pr-10" />
+        <i
+          className={`${icon} absolute right-3 top-1/2 -translate-y-1/2 text-muted`}
+        />
+      </div>
+      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
+    </div>
   )
 }

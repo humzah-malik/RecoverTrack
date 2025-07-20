@@ -55,9 +55,17 @@ export default function TrendChart({ chart, data }: TrendChartProps) {
             data={lineData}
             margin={{ top: 10, right: 20, left: 0, bottom: 40 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+            />
+            <XAxis
+              dataKey="label"
+              stroke="var(--text-muted)"
+            />
+            <YAxis
+              stroke="var(--text-muted)"
+            />
             <Tooltip
               formatter={(value: number, name: string) => [value.toFixed(1), name]}
               labelFormatter={label => `Metric: ${label}`}
@@ -70,7 +78,7 @@ export default function TrendChart({ chart, data }: TrendChartProps) {
             />
             <Line type="monotone" dataKey="recovery" name="Recovery" stroke="#F87171" />
             <Line type="monotone" dataKey="sleep"    name="Sleep (h)"  stroke="#34D399" />
-            <Line type="monotone" dataKey="hrv"      name="HRV"        stroke="#111827" />
+            <Line type="monotone" dataKey="hrv"      name="HRV"        stroke="#38BDF8" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -91,9 +99,17 @@ export default function TrendChart({ chart, data }: TrendChartProps) {
             <XAxis dataKey="label" />
             <YAxis />
             <Tooltip
-              formatter={(value: number, name: string) => [`${value}`, name]}
-              labelFormatter={label => `Metric: ${label}`}
-            />
+             formatter={(v: number, n: string) => [v.toFixed(1), n]}
+             labelFormatter={l => `Metric: ${l}`}
+             wrapperStyle={{
+               background: 'var(--surface)',
+               border:     '1px solid var(--border)',
+               borderRadius: 8,
+               boxShadow:   '0 4px 12px rgba(0,0,0,.25)',
+               color:       'var(--text-primary)',
+             }}
+             labelStyle={{ color:'var(--text-muted)', fontWeight:600 }}
+           />
             {/* Legend moved underneath, centered */}
             <Legend
               verticalAlign="bottom"

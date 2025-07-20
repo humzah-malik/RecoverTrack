@@ -136,7 +136,7 @@ export default function Trends() {
       {/* 2×2 grid of charts + insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recovery vs Sleep vs HRV */}
-        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-lg">
+        <div className="card-base p-4 bg-white dark:bg-[var(--surface)]">
           <TrendChart
             chart="line"
             data={chartData.map(d => ({
@@ -149,7 +149,7 @@ export default function Trends() {
         </div>
 
         {/* Training Volume vs Failures */}
-        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-lg">
+        <div className="card-base p-4 bg-white dark:bg-[var(--surface)]">
           <TrendChart
             chart="bar"
             data={chartData.map(d => ({
@@ -161,7 +161,7 @@ export default function Trends() {
         </div>
 
         {/* Macro Distribution (sum actual vs targets over the period) */}
-        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-lg">
+        <div className="card-base p-4 bg-white dark:bg-[var(--surface)]">
           <TrendChart
             chart="radar"
             data={[
@@ -173,7 +173,7 @@ export default function Trends() {
         </div>
 
         {/* Insights */}
-        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-lg">
+        <div className="card-base p-4 bg-white dark:bg-[var(--surface)]">
           <h2 className="font-semibold mb-2">Insights</h2>
           {insightsLoading ? (
             <p className="text-sm text-gray-500">Loading insights...</p>

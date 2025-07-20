@@ -29,48 +29,63 @@ export default function CalendarHeader({
       ? cursor.isSame(dayjs().startOf('week'), 'day')
       : cursor.isSame(dayjs().startOf('month'), 'month')
 
-  return (
-    <div className="flex items-center gap-4 mb-6">
-      <button
-        onClick={onPrev}
-        className="border px-3 py-2 rounded hover:bg-gray-100"
-      >
-        ◀
-      </button>
-
-      <h2 className="font-semibold">{label}</h2>
-
-      <button
-        onClick={onNext}
-        disabled={atCurrentPeriod}
-        className={[
-          'border px-3 py-2 rounded',
-          atCurrentPeriod
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:bg-gray-100',
-        ].join(' ')}
-      >
-        ▶
-      </button>
-
-      <div className="ml-auto flex gap-2 text-xs">
-        <button
-          onClick={() => setView('week')}
-          className={`px-3 py-1 rounded border ${
-            view === 'week' ? 'bg-black text-white' : 'hover:bg-gray-100'
-          }`}
-        >
-          7-Day
-        </button>
-        <button
-          onClick={() => setView('month')}
-          className={`px-3 py-1 rounded border ${
-            view === 'month' ? 'bg-black text-white' : 'hover:bg-gray-100'
-          }`}
-        >
-          30-Day
-        </button>
-      </div>
-    </div>
-  )
+      return (
+        <div className="flex items-center gap-4 mb-6">
+          {/* ‹ Prev */}
+          <button
+            onClick={onPrev}
+            className="
+              btn px-3 py-2 !rounded-md
+              dark:bg-[var(--input-bg)]
+              hover:brightness-105
+            "
+          >
+            ◀
+          </button>
+      
+          {/* Label */}
+          <h2 className="font-semibold text-gray-900 dark:text-[var(--text-primary)]">
+            {label}
+          </h2>
+      
+          {/* Next › */}
+          <button
+            onClick={onNext}
+            disabled={atCurrentPeriod}
+            className={`
+              btn px-3 py-2 !rounded-md
+              dark:bg-[var(--input-bg)]
+              ${atCurrentPeriod
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:brightness-105'}
+            `}
+          >
+            ▶
+          </button>
+      
+          {/* view toggles */}
+          <div className="ml-auto flex gap-2 text-xs">
+            <button
+              onClick={() => setView('week')}
+              className={`px-3 py-1 rounded border border-border ${
+                view === 'week'
+                  ? 'btn-dark'                                  /* filled black */
+                  : 'bg-[var(--surface-alt)] hover:bg-[var(--surface)]'
+            }`}
+            >
+              7‑Day
+            </button>
+            <button
+              onClick={() => setView('month')}
+              className={`px-3 py-1 rounded border border-border ${
+                view === 'month'
+                  ? 'btn-dark'
+                  : 'bg-[var(--surface-alt)] hover:bg-[var(--surface)]'
+                }`}
+            >
+              30‑Day
+            </button>
+          </div>
+        </div>
+      )      
 }

@@ -19,13 +19,23 @@ interface TrendsHeaderProps {
 }
 
 function Card({ title, value }: { title: string; value: string | number }) {
-  return (
-    <div className="border rounded-lg p-4 bg-white shadow-sm text-center">
-      <p className="text-xs text-gray-600">{title}</p>
-      <p className="text-xl font-bold">{value}</p>
-    </div>
-  )
-}
+      /* card-base gives neutral theme‑aware surface  subtle shadow */
+      return (
+        <div
+          className="
+            card-base flex flex-col items-center justify-center p-4 text-center
+            bg-white  dark:bg-[var(--surface-alt)]
+          "
+        >
+          <p className="text-xs text-gray-600 dark:text-[var(--text-muted)]">
+            {title}
+          </p>
+          <p className="text-xl font-bold text-gray-900 dark:text-[var(--text-primary)]">
+            {value}
+          </p>
+        </div>
+      )
+    }
 
 export default function TrendsHeader({
   view,
@@ -44,9 +54,13 @@ export default function TrendsHeader({
     <div className="space-y-6">
       {/* Navigation & Toggle */}
       <div className="flex items-center gap-4">
-        <button
+      <button
           onClick={onPrev}
-          className="border px-3 py-2 rounded hover:bg-gray-100 disabled:opacity-50"
+          className="
+            btn px-3 py-2 !rounded-md
+            dark:bg-[var(--input-bg)]
+            hover:brightness-105
+          "
         >
           ◀
         </button>
@@ -60,7 +74,13 @@ export default function TrendsHeader({
         <button
           onClick={onNext}
           disabled={isNextDisabled}
-          className="border px-3 py-2 rounded hover:bg-gray-100 disabled:opacity-50"
+          className={`
+            btn px-3 py-2 !rounded-md
+            dark:bg-[var(--input-bg)]
+            ${isNextDisabled
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:brightness-105'}
+          `}
         >
           ▶
         </button>
@@ -68,16 +88,20 @@ export default function TrendsHeader({
         <div className="ml-auto flex gap-2 text-xs">
           <button
             onClick={() => setView('week')}
-            className={`px-3 py-1 rounded border ${
-              view === 'week' ? 'bg-black text-white' : 'hover:bg-gray-100'
+            className={`px-3 py-1 rounded border border-border ${
+                            view === 'week'
+                              ? 'btn-dark'                                  /* filled black */
+                              : 'bg-[var(--surface-alt)] hover:bg-[var(--surface)]'
             }`}
           >
             7‑Day
           </button>
           <button
             onClick={() => setView('month')}
-            className={`px-3 py-1 rounded border ${
-              view === 'month' ? 'bg-black text-white' : 'hover:bg-gray-100'
+            className={`px-3 py-1 rounded border border-border ${
+                            view === 'month'
+                              ? 'btn-dark'
+                              : 'bg-[var(--surface-alt)] hover:bg-[var(--surface)]'
             }`}
           >
             30‑Day

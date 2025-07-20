@@ -18,13 +18,13 @@ export default function AppNav({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <Disclosure as="header" className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-bg text-primary">
+      <Disclosure as="header" className="sticky top-0 z-20 bg-surface/80 backdrop-blur border-b border-border shadow-sm">
         {({ open }) => (
           <>
             <div className="mx-auto max-w-7xl h-14 flex items-center justify-between px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-10">
-                <span className="font-bold select-none">RecoveryTracker</span>
+                <span className="font-bold select-none text-primary">RecoveryTracker</span>
                 <ul className="hidden sm:flex gap-8 text-sm font-medium">
                   {nav.map(({ to, label }) => (
                     <li key={to}>
@@ -32,8 +32,8 @@ export default function AppNav({ children }: { children: ReactNode }) {
                         className={[
                           'relative transition-colors after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:transition-all',
                           pathname.startsWith(to)
-                            ? 'text-black after:w-full after:bg-black'
-                            : 'text-gray-600 hover:text-gray-900 after:w-0 after:bg-black/80 hover:after:w-full'
+                            ? 'text-primary after:w-full after:bg-accent'
+                            : 'text-muted hover:text-primary after:w-0 after:bg-accent/80 hover:after:w-full'
                         ].join(' ')}
                       >
                         {label}
@@ -58,7 +58,7 @@ export default function AppNav({ children }: { children: ReactNode }) {
                         localStorage.removeItem('refresh_token');
                         navigate('/auth/login');
                       }}
-                      className="text-sm text-gray-600 hover:text-black border border-gray-300 px-3 py-1 rounded"
+                      className="text-sm text-muted hover:text-primary border border-border px-3 py-1 rounded"
                     >
                       Log Out
                     </button>

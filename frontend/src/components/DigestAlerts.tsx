@@ -1,17 +1,23 @@
-// src/components/DigestAlerts.tsx  (red rules)
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export const DigestAlerts = ({ alerts }: { alerts: string[] }) => {
   if (!alerts.length) return null;
   return (
-    <div className="space-y-2">
+    <div className="digest-stack">
       {alerts.map((msg, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 border border-red-300 bg-red-50 text-red-700 px-4 py-2 rounded"
+          className="digest-panel is-alert outline"
+          style={{
+            // override accent for alerts (danger)
+            '--digest-accent': 'var(--danger)',
+            '--digest-accent-rgb': '255 111 111'
+          } as React.CSSProperties}
         >
-          <ExclamationTriangleIcon className="w-5 h-5 shrink-0" />
-          <span className="text-sm">{msg}</span>
+          <span className="digest-icon">
+            <ExclamationTriangleIcon className="w-3.5 h-3.5" />
+          </span>
+            <span className="digest-text">{msg}</span>
         </div>
       ))}
     </div>
