@@ -1,5 +1,4 @@
 // src/components/CalendarHeader.tsx
-import React from 'react'
 import dayjs from 'dayjs'
 
 interface Props {

@@ -118,12 +118,12 @@ export default function Profile() {
         <section className="card-base p-6 space-y-4">
           <h3 className="text-lg font-semibold">Personal Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Age" type="number" value={merged.age} onChange={onFieldChange('age')} />
-            <Select label="Sex" value={merged.sex} onChange={onFieldChange('sex')} options={['male', 'female']} />
-            <Input label="Height" type="number" value={merged.height} onChange={onFieldChange('height')} />
-            <Select label="Unit" value={merged.height_unit} onChange={onFieldChange('height_unit')} options={['cm', 'in']} />
-            <Input label="Weight" type="number" value={merged.weight} onChange={onFieldChange('weight')} />
-            <Select label="Unit" value={merged.weight_unit} onChange={onFieldChange('weight_unit')} options={['kg', 'lb']} />
+            <Input label="Age" type="number" value={merged.age ?? ''} onChange={onFieldChange('age')} />
+            <Select label="Sex" value={merged.sex ?? ''} onChange={onFieldChange('sex')} options={['male', 'female']} />
+            <Input label="Height" type="number" value={merged.height ?? ''} onChange={onFieldChange('height')} />
+            <Select label="Unit" value={merged.height_unit ?? ''} onChange={onFieldChange('height_unit')} options={['cm', 'in']} />
+            <Input label="Weight" type="number" value={merged.weight ?? ''} onChange={onFieldChange('weight')} />
+            <Select label="Unit" value={merged.weight_unit ?? ''} onChange={onFieldChange('weight_unit')} options={['kg', 'lb']} />
             <Select label="Activity Level" value={merged.activity_level ?? ''} onChange={onFieldChange('activity_level')} options={activityLevels} />
             <Select label="Current Split" value={merged.split_template_id ?? ''} onChange={onFieldChange('split_template_id')} options={splitOptions.map(s => ({ label: s.name, value: s.id }))} />
           </div>

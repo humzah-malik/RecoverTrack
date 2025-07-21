@@ -24,7 +24,7 @@ export function useProfile() {
     isError: profileQ.isError,
     updateProfile: updateMut.mutateAsync,
     updateStatus: {
-      isLoading: updateMut.isLoading,
+      isLoading: updateMut.status === "pending",
       isError: updateMut.isError,
     },
   };

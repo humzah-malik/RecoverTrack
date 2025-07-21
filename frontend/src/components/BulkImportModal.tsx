@@ -55,7 +55,7 @@ export default function BulkImportModal({ isOpen, onClose }: BulkImportModalProp
     if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0])
   }
 
-  const handleClose = (e?: any) => {
+  const handleClose = (e?: React.MouseEvent<HTMLButtonElement> | undefined) => {
     console.log('[Modal] onClose called!', e);
     // Prevent immediate closing by adding a small delay
     setTimeout(() => {
@@ -150,7 +150,7 @@ export default function BulkImportModal({ isOpen, onClose }: BulkImportModalProp
               </div>
 
               {/* Progress bar */}
-              {mutation.isLoading && (
+              {mutation.status === "pending" && (
                 <div className="mt-4">
                   <div className="flex justify-between text-sm mb-1">
                     <span>Uploading…</span>

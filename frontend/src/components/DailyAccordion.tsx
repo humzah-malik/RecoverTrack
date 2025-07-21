@@ -13,6 +13,18 @@ interface Props {
   onSave?: () => void
 }
 
+type FormState = {
+  [key: string]: string | boolean;
+  // ... (optionally, list your known fields for better type safety)
+};
+
+// Add a type for field configs
+interface FieldConfig {
+  name: string;
+  label: string;
+  type?: string;
+}
+
 export default function DailyAccordion({ date, type, label, disabled = false, onSave }: Props) {
   /* ── data + mutation ───────────────────────────────────────────── */
   const { data, isLoading } = useDailyLog(date)
@@ -22,7 +34,7 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
   console.log('[DailyAccordion] sessions for dropdown:', sessions)
 
   /* ── form state (blank defaults) ───────────────────────────────── */
-  const emptyState = {
+  const emptyState: FormState = {
     /* morning */
     sleep_start: '', sleep_end: '', sleep_quality: '',
     resting_hr:  '', hrv: '', soreness: '', stress: '',
@@ -38,7 +50,7 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
     // If you later reinstate split, leave it blank here
     split: '',
   }
-  const [form, setForm] = useState(emptyState)
+  const [form, setForm] = useState<FormState>(emptyState)
 
   /* ── hydrate form when data arrives ────────────────────────────── */
   useEffect(() => {
@@ -69,14 +81,19 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
   }, [data])
 
   /* ── generic field handler ─────────────────────────────────────── */
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type: t, checked } = e.target
-    setForm(prev => ({ ...prev, [name]: t === 'checkbox' ? checked : value }))
-  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox'
+        ? (e.target as HTMLInputElement).checked
+        : value
+    }));
+  };
 
   /* ── save to backend ───────────────────────────────────────────── */
   const handleSave = async () => {
-    const payload: any = { date }
+    const payload: Record<string, unknown> = { date }
 
     /** helper → push only if value !== ''  */
     const add = (k: string, raw: string | boolean, numeric = false) => {
@@ -128,7 +145,7 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
     console.log('Final payload being sent:', JSON.stringify(payload, null, 2))
 
     try {
-      await upsert.mutateAsync(payload)
+      await upsert.mutateAsync(payload as DailyLogRequest)
       onSave?.()
       console.log('[DailyAccordion] upsert succeeded')
     } catch (err: any) {
@@ -138,7 +155,7 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
   }
 
   /* ── field configs for UI ──────────────────────────────────────── */
-  const morningFields = [
+  const morningFields: FieldConfig[] = [
     { name: 'sleep_start',   label: 'Sleep Start (HH:MM)' },
     { name: 'sleep_end',     label: 'Sleep End (HH:MM)'   },
     { name: 'sleep_quality', label: 'Sleep Quality (1–5)' },
@@ -146,18 +163,18 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
     { name: 'hrv',           label: 'HRV'                 },
     { name: 'soreness',      label: 'Soreness (1–5)'      },
     { name: 'stress',        label: 'Stress (1–5)'        },
-    { name: 'motivation',    label: 'Motivation (1–5)'    },          // NEW
-    { name: 'recovery_rating', label: 'Recovery Rating (0–100, optional)' }, // NEW
+    { name: 'motivation',    label: 'Motivation (1–5)'    },
+    { name: 'recovery_rating', label: 'Recovery Rating (0–100, optional)' },
   ]
 
-  const eveningFields = [
+  const eveningFields: FieldConfig[] = [
     { name: 'trained',      label: 'Did you train?', type: 'checkbox' },
     { name: 'split',        label: 'Session', type: 'select' },
     { name: 'total_sets',   label: 'Total Sets'      },
     { name: 'failure_sets', label: 'Failure Sets'    },
     { name: 'total_rir',    label: 'Total RIR'       },
     { name: 'calories',     label: 'Calories'        },
-    { name: 'protein',      label: 'Protein (g)'     }, // macros
+    { name: 'protein',      label: 'Protein (g)'     },
     { name: 'carbs',        label: 'Carbs (g)'       },
     { name: 'fat',          label: 'Fat (g)'         },
     { name: 'water_intake_l', label: 'Water (L)'     },
@@ -187,14 +204,14 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
               <div key={f.name} className="flex flex-col">
                 <label className="text-xs font-medium text-gray-600">{f.label}</label>
 
-                {f.type === 'checkbox' ? (
+                {(f.type ?? 'text') === 'checkbox' ? (
                   <input
                     type="checkbox"
                     name={f.name}
                     checked={form[f.name] as boolean}
                     onChange={handleChange}
                   />
-                ) : f.type === 'select' ? (
+                ) : (f.type ?? 'text') === 'select' ? (
                                     <select
                                       name={f.name}
                                       value={form[f.name] as string}
@@ -222,10 +239,10 @@ export default function DailyAccordion({ date, type, label, disabled = false, on
             <button
               type="button"
               onClick={handleSave}
-              disabled={upsert.isLoading}
+              disabled={upsert.status === "pending"}
               className="bg-black text-white px-4 py-2 text-sm font-semibold rounded"
             >
-              {upsert.isLoading ? 'Saving…' : 'Save Check-In'}
+              {upsert.status === "pending" ? 'Saving…' : 'Save Check-In'}
             </button>
           </form>
         )}
