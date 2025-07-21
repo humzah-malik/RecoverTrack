@@ -36,15 +36,15 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
           <span>Step 2 of 4</span>
           <span>Your Goals</span>
         </div>
-        <div className="h-2 w-full bg-gray-200 rounded">
-          <div className="h-full w-1/2 bg-gray-900 rounded" />
+        <div className="h-2 w-full bg-[var(--border)] rounded">
+          <div className="h-full w-1/2 bg-[var(--accent)] rounded" />
         </div>
       </div>
 
       {/* card ---------------------------------------------------- */}
       <form
         onSubmit={handleSubmit(onNext)}
-        className="space-y-6 bg-white/80 backdrop-blur border border-gray-200 rounded-lg p-8 shadow-sm"
+        className="hoverable card-base p-6 sm:p-8 space-y-6"
       >
         {/* heading */}
         <div>
@@ -59,7 +59,7 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
           <label className="block text-sm font-medium mb-1">Goal</label>
           <select
           {...register('goal')}
-          className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+          className="input w-full"
         >
             <option value="gain muscle">Gain Muscle</option>
             <option value="maintenance">Maintenance</option>
@@ -78,7 +78,7 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
           </label>
           <select
           {...register('activity_level')}
-          className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+          className="input w-full"
             >  
             <option value="low">Low</option>
             <option value="moderate">Moderate</option>
@@ -99,7 +99,7 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
             <input
             type="number"
             {...register('weight_target', { valueAsNumber: true })}
-            className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+            className="input w-full"
             />
             {errors.weight_target && (
             <p className="text-red-500 text-xs mt-1">
@@ -109,8 +109,7 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
         </div>
         <div>
             <label className="block text-sm font-medium mb-1">Unit</label>
-            <select {...register('weight_target_unit')} className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
-        >
+            <select {...register('weight_target_unit')} className="input w-full">
             <option value="kg">kg</option>
             <option value="lb">lb</option>
             </select>
@@ -122,14 +121,14 @@ export function GoalStep({ defaultValues, onPrev, onNext }: Props) {
           <button
           type="button"
           onClick={onPrev}
-          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+          className="btn btn-ghost"
         >
           ← Back
         </button>
           <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+          className="btn btn-dark"
         >
           Next Step →
         </button>

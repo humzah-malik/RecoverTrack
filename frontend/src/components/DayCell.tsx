@@ -5,6 +5,7 @@ interface Props {
   date: dayjs.Dayjs;
   data: DayState;
   onClick: () => void;
+  className?: string;
 }
 
 /* generic wrapper */
@@ -23,7 +24,7 @@ const COLORS = {
   pending   : 'bg-gray-50   dark:bg-[var(--surface-alt)] text-gray-400'
 } as const;
 
-export default function DayCell({ date, data, onClick }: Props) {
+export default function DayCell({ date, data, onClick, className }: Props) {
   /* decide colour bucket */
   const bucket =
     data.state === 'scored'
@@ -38,7 +39,10 @@ export default function DayCell({ date, data, onClick }: Props) {
   const corner = bucket === 'pending' || bucket === 'rest' ? 'right-1' : 'left-1';
 
   return (
-    <div onClick={onClick} className={`${BASE} ${COLORS[bucket]}`}>
+    <div
+      onClick={onClick}
+      className={`${BASE} ${COLORS[bucket]} ${className}`}
+    >
       {/* calendar‑day number */}
       <span className={`absolute top-1 ${corner} text-[10px]`}>{date.date()}</span>
 

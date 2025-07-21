@@ -24,7 +24,13 @@ export default function AppNav({ children }: { children: ReactNode }) {
           <>
             <div className="mx-auto max-w-7xl h-14 flex items-center justify-between px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-10">
-                <span className="font-bold select-none text-primary">RecoveryTracker</span>
+              <Link
+                to="/"
+                className="flex items-center gap-2 font-bold select-none text-primary hover:text-accent transition-colors"
+              >
+                <i className="fas fa-wave-square text-xl text-accent" />
+                <span>RecoverTrack</span>
+              </Link>
                 <ul className="hidden sm:flex gap-8 text-sm font-medium">
                   {nav.map(({ to, label }) => (
                     <li key={to}>

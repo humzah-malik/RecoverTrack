@@ -121,11 +121,6 @@ export default function Dashboard() {
           className="card-base p-8 sm:p-10 flex flex-col items-center text-center gap-4"
         >
           <RecoveryScoreDisplay date={today} />
-          {sleepDurationText && (
-            <p className="text-muted text-sm">
-              Logged sleep: <span className="text-primary">{sleepDurationText}</span>
-            </p>
-          )}
           {!recovery && hasMorning && (
             <p className="text-muted text-xs">
               Generating recovery score…

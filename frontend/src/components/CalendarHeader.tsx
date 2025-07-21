@@ -83,7 +83,7 @@ export default function CalendarHeader({
                   : 'bg-[var(--surface-alt)] hover:bg-[var(--surface)]'
                 }`}
             >
-              30‑Day
+              Monthly
             </button>
           </div>
         </div>

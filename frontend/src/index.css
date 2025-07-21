@@ -562,3 +562,32 @@
   background-color: #e05b5b;
 }
 
+/* === Calendar cell helper (phones 44 px, desktop 56 px) === */
+@layer utilities {
+  .cal-cell {
+    @apply flex flex-col items-center justify-center rounded-lg
+            w-11 h-11 text-[13px]         /* mobile ≤ sm */
+            sm:w-14 sm:h-14 sm:text-base; /* ≥ sm unchanged size */
+  }
+
+  .glass-panel {
+    /* width / layout */
+    @apply mx-auto max-w-7xl   /* was 6xl → ~90 rem */
+           rounded-[40px]      /* softer corner */
+           p-16;               /* was p‑12 → more inner height */
+
+    /* frosted look */
+    @apply backdrop-blur-md
+           bg-white/60 dark:bg-white/10
+           border border-white/40 dark:border-white/10
+           shadow-[0_10px_40px_-10px_rgba(0,0,0,0.45)];
+  }
+
+  @keyframes wave-scroll {
+    0%   { transform: translateX(0);   }
+    100% { transform: translateX(-160px); } /* 1 period */
+  }
+  .animate-wave {
+    animation: wave-scroll 9s linear infinite;
+  }
+}

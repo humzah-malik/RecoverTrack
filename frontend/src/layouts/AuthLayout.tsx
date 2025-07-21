@@ -13,13 +13,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <main className="w-full max-w-sm space-y-6">
         {/* ── Brand header ─────────────────────────────── */}
         <header className="text-center space-y-1">
-          <i className="fas fa-wave-square text-3xl text-[var(--accent)]" />
-          <h1 className="text-2xl font-semibold tracking-tight">
-            RecoverTrack
-          </h1>
-          <p className="text-muted text-sm">
+        <div className="flex items-center justify-center gap-2">
+            <i className="fas fa-wave-square text-3xl text-[var(--accent)]" />
+            <h1 className="text-2xl font-semibold tracking-tight">RecoverTrack</h1>
+        </div>
+        <p className="text-muted text-sm">
             Track your fitness recovery journey
-          </p>
+        </p>
         </header>
 
         {/* ── Card shell for auth forms ────────────────── */}

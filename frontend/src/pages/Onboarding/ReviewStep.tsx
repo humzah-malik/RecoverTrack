@@ -54,15 +54,15 @@ export function ReviewStep({ profile, onPrev, onNext }: Props) {
           <span>Step 3 of 4</span>
           <span>Review Targets</span>
         </div>
-        <div className="h-2 w-full bg-gray-200 rounded">
-          <div className="h-full w-3/4 bg-gray-900 rounded" />
+        <div className="h-2 w-full bg-[var(--border)] rounded">
+          <div className="h-full w-3/4 bg-[var(--accent)] rounded" />
         </div>
       </div>
 
       {/* card */}
       <form
         onSubmit={handleSubmit(onNext)}
-        className="space-y-6 bg-white border border-gray-200 rounded-lg p-8 shadow-sm"
+        className="hoverable card-base p-6 sm:p-8 space-y-6"
       >
         <div>
           <h2 className="text-2xl font-semibold mb-1">
@@ -79,7 +79,7 @@ export function ReviewStep({ profile, onPrev, onNext }: Props) {
           <input
             type="number"
             {...register('maintenance_calories', { valueAsNumber: true })}
-            className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+            className="input w-full"
           />
         </div>
 
@@ -93,7 +93,7 @@ export function ReviewStep({ profile, onPrev, onNext }: Props) {
                 <input
                   type="number"
                   {...register(`macro_targets.${m}`, { valueAsNumber: true })}
-                  className="input w-full bg-gray-50/80 border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-900/20"
+                  className="input w-full"
                 />
               </div>
             ))}
@@ -105,14 +105,14 @@ export function ReviewStep({ profile, onPrev, onNext }: Props) {
         <button
           type="button"
           onClick={onPrev}
-          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+          className="btn btn-ghost"
         >
           ← Back
         </button>
           <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+          className="btn btn-dark"
         >
           Next Step →
         </button>

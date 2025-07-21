@@ -20,7 +20,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="max-w-lg mx-auto p-6 space-y-6">
+    <div className="max-w-md mx-auto p-6 sm:p-8 space-y-8">
       {/* ─── Step 0 : Profile ───────────────────────── */}
       {step === 0 && (
         <ProfileStep

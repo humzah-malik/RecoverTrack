@@ -34,7 +34,7 @@ export function SplitStep({
   /* ---------- empty-state ------------------------------------------------ */
   if (splits.length === 0) {
     return (
-      <div className="max-w-md mx-auto space-y-6 bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+      <div className="hoverable card-base p-6 sm:p-8 space-y-6">
         <p className="text-center">
           No workout splits found. Create one to finish onboarding.
         </p>
@@ -60,15 +60,15 @@ export function SplitStep({
           <span>Step 4 of 4</span>
           <span>Workout Split</span>
         </div>
-        <div className="h-2 w-full bg-gray-200 rounded">
-          <div className="h-full w-full bg-gray-900 rounded" />
+        <div className="h-2 w-full bg-[var(--border)] rounded">
+          <div className="h-full w-full bg-[var(--accent)] rounded" />
         </div>
       </div>
 
       {/* card */}
       <form
         onSubmit={handleSubmit(onNext)}
-        className="space-y-6 bg-white border border-gray-200 rounded-lg p-8 shadow-sm"
+        className="  hoverable card-base p-6 sm:p-8 space-y-6"
       >
         <div>
           <h2 className="text-2xl font-semibold mb-1">
@@ -92,15 +92,15 @@ export function SplitStep({
                     <label
                       onClick={() => onChange(isSelected ? '' : s.id)}
                       className={
-                        `flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ` +
+                        `flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-[var(--surface-alt)] dark:hover:bg-[rgba(var(--accent-rgb)/0.07)] ` +
                         (isSelected
-                          ? 'ring-2 ring-black border-black'
-                          : 'border-gray-200')
+                          ? 'ring-2 ring-[var(--accent)] border-[var(--accent)]'
+                          : ' border-[var(--border)]')
                       }
                     >
                       <span>
                         <strong>{s.name}</strong>{' '}
-                        <span className="text-gray-500">({s.type})</span>
+                        <span className="text-muted">({s.type})</span>
                       </span>
                     </label>
                   </div>
@@ -115,14 +115,14 @@ export function SplitStep({
           <button
             type="button"
             onClick={onPrev}
-            className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+            className="btn btn-ghost"
           >
             ← Back
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800"
+            className="btn btn-dark"
           >
             Finish
           </button>
