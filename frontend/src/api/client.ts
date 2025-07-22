@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000",
+  baseURL: import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000",
 });
 
 // Inject token from localStorage or sessionStorage
