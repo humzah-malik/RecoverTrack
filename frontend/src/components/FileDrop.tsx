@@ -1,5 +1,5 @@
 import { useRef, useState, DragEvent } from 'react';
-import { useBulkImport } from '../api/bulkImport';
+import { useBulkImport } from './bulkImport';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
