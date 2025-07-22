@@ -86,4 +86,27 @@ def compute_daily_micro_tips(ctx: Dict[str, Any], user: User) -> List[str]:
     if rhr is not None and rhr > 70:
         tips.append("Resting heart rate is a bit elevated—keep an eye on stress and recovery.")
 
+        # ── Soreness ────────────────────────────────────────────────
+    soreness = _clean(ctx.get("soreness"))
+    if soreness is not None and soreness > 3:
+        tips.append("High soreness today—light activity or mobility may help with recovery.")
+
+    # ── Water Intake ────────────────────────────────────────────
+    water_l = _clean(ctx.get("water_intake_l"))
+    if water_l is not None and water_l < 2.5:
+        tips.append(f"Only drank {water_l:.1f} L of water—hydration supports recovery and energy.")
+
+    # ── Stress Level ────────────────────────────────────────────
+    stress = _clean(ctx.get("stress"))
+    if stress is not None and stress > 3:
+        tips.append("Stress level is high today—consider some mindfulness or active recovery.")
+
+    # ── Sleep & Stress Combo ────────────────────────────────────
+    if (
+        sleep_h is not None and sleep_h < 6 and
+        stress is not None and stress > 3
+    ):
+        tips.append("Low sleep and high stress—try to make today a recovery-focused day.")
+
+
     return tips

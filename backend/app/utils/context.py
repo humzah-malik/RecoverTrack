@@ -168,6 +168,9 @@ def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]
     sq_days = sum(1 for l in days if l.sleep_quality is not None)
     macro_days = sum(1 for l in days if l.macros and user.macro_targets)
     n_days = len(days) if days else 1
+    stress_days = sum(1 for l in days if l.stress is not None)
+    water_days = sum(1 for l in days if l.water_intake_l is not None)
+    soreness_vals = [l.soreness.get("general", 0) for l in days if l.soreness]
 
     # Straight sums
     total_sets = sum(l.total_sets or 0 for l in days)
@@ -211,6 +214,13 @@ def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]
         protein_pct_sum += (m.get("protein", 0) / p_t) * 100
         carbs_pct_sum   += (m.get("carbs",   0) / c_t) * 100
         fat_pct_sum     += (m.get("fat",     0) / f_t) * 100
+        avg_water_l = sum(l.water_intake_l or 0 for l in days) / (water_days or 1)
+        avg_stress = sum(l.stress or 0 for l in days) / (stress_days or 1)
+        avg_soreness = sum(soreness_vals) / len(soreness_vals) if soreness_vals else 0.0
+        avg_deficit_pct = sum(
+            ((l.calories or 0) - (user.maintenance_calories or 1)) / (user.maintenance_calories or 1)
+            for l in days if l.calories is not None
+        ) / (cal_days or 1)
 
     return {
         "start_date":         start.isoformat(),
@@ -228,6 +238,10 @@ def build_weekly_context(user: User, up_to: date, db: Session) -> Dict[str, Any]
         "avg_protein_pct":    protein_pct_sum / (macro_days or 1),
         "avg_carbs_pct":      carbs_pct_sum     / (macro_days or 1),
         "avg_fat_pct":        fat_pct_sum       / (macro_days or 1),
+        "weekly_avg_water_l": avg_water_l,
+        "weekly_avg_stress": avg_stress,
+        "weekly_avg_soreness": avg_soreness,
+        "weekly_avg_cal_deficit_pct": avg_deficit_pct,
     }
 
 
@@ -256,6 +270,9 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
     sq_days = sum(1 for l in days if l.sleep_quality is not None)
     macro_days = sum(1 for l in days if l.macros and user.macro_targets)
     n_days = len(days) if days else 1
+    stress_days   = sum(1 for l in days if l.stress is not None)
+    water_days    = sum(1 for l in days if l.water_intake_l is not None)
+    soreness_vals = [l.soreness.get("general", 0) for l in days if l.soreness]
 
     total_sets   = sum(l.total_sets or 0 for l in days)
     failure_sets = sum(l.failure_sets or 0 for l in days)
@@ -337,6 +354,14 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
     avg_carbs_pct     = carbs_pct_sum     / (macro_days or 1)
     avg_fat_pct       = fat_pct_sum       / (macro_days or 1)
 
+    avg_water_l = sum(l.water_intake_l or 0 for l in days) / (water_days or 1)
+    avg_stress  = sum(l.stress or 0 for l in days) / (stress_days or 1)
+    avg_soreness = sum(soreness_vals) / len(soreness_vals) if soreness_vals else 0.0
+    avg_deficit_pct = sum(
+        ((l.calories or 0) - (user.maintenance_calories or 1)) / (user.maintenance_calories or 1)
+        for l in days if l.calories is not None
+    ) / (cal_days or 1)
+
     # build & return the context dict
     return {
         "start_date":              start.isoformat(),
@@ -355,4 +380,9 @@ def build_monthly_context(user: User, month: str, db: Session) -> Dict[str, Any]
         "monthly_avg_carbs_pct":   avg_carbs_pct,
         "pct_to_target": pct_to_target,
         "monthly_avg_fat_pct":     avg_fat_pct,
+        "monthly_avg_water_l": avg_water_l,
+        "monthly_avg_stress": avg_stress,
+        "monthly_avg_soreness": avg_soreness,
+        "monthly_avg_cal_deficit_pct": avg_deficit_pct,
+        "pct_failure": (monthly_failure_sets / monthly_total_sets) if monthly_total_sets else 0,
     }
