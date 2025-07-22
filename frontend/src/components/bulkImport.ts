@@ -1,5 +1,5 @@
 // src/api/bulkImport.ts
-import axios from './client'
+import axios from '../api/client'
 import { useMutation } from '@tanstack/react-query'
 
 export interface BulkImportResult {
