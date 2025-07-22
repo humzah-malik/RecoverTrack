@@ -10,9 +10,10 @@ interface Props {
 
 /* generic wrapper */
 const BASE =
-  'relative aspect-square rounded-md select-none cursor-pointer ' +
-  'flex flex-col items-center justify-center font-semibold text-sm ' +
-  'ring-1 ring-black/5 dark:ring-[var(--divider)]';
+  'relative aspect-square w-full rounded-md ' +
+  'select-none cursor-pointer flex flex-col items-center justify-center ' +
+  'font-semibold text-sm ring-1 ring-black/5 dark:ring-[var(--divider)]';
+
 
 /* colour mapping driven by CSS tokens we just fixed */
 const COLORS = {
