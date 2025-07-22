@@ -15,6 +15,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import AppNav from '../components/AppNav';
 import ForgotPassword    from '../pages/ForgotPassword'
 import ConfirmEmailSent  from '../pages/ConfirmEmailSent'
+import { Analytics } from '@vercel/analytics/react';
 
 // A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -109,6 +110,7 @@ export default function AppRouter() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Analytics />
     </BrowserRouter>
   )
 }
