@@ -1,0 +1,15 @@
+name: Keep Backend Warm
+
+on:
+  schedule:
+    - cron: '*/14 * * * *'  # every 14 minutes
+  workflow_dispatch:
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping the Render backend
+        run: |
+          curl --silent --fail https://ml-project-rc9u.onrender.com/ping || echo "Ping failed"

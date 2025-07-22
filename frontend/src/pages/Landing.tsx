@@ -44,8 +44,6 @@ export default function Landing() {
       bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.04),transparent_60%)]
       dark:bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02),transparent_60%)]">
 
-      <HRVWave />
-
       {/* THEME TOGGLE */}
       <div className="absolute bottom-4 right-4 z-50">
         <ThemeToggle />

@@ -5,12 +5,12 @@
 
 /* Base neutrals for light mode (will be overridden by palette) */
 :root {
-  --bg:            #ffffff;
-  --surface:       #ffffff;
-  --surface-alt:   #f3f4f6;
-  --border:        #e5e7eb;
-  --text-primary:  #111827;
-  --text-muted:    #6b7280;
+  --bg: #fff4ef; /* light peach-pink */
+  --surface: #fff9f5;
+  --surface-alt: #fceae6;
+  --border: #f0dad4;
+  --text-primary: #2b1e1a;
+  --text-muted: #946d5f;
   --accent:        #00b894; /* default teal */
   --accent-hover:  #00a383;
   --success:  #3CB371;
@@ -67,12 +67,12 @@
     background-color: var(--bg) !important;
     color:            var(--text-primary) !important;
     html, body, input, button, select, textarea {
-      font-family: "Inter", system-ui, sans-serif;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
     }
   }
 
   h1, h2, h3 {
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
   }
 
   /* 2) normalize cards/buttons that DaisyUI might have white-bg */

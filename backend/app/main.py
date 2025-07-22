@@ -8,7 +8,7 @@ from app.routers import user, auth, daily_log, splits, rules_templates, recovery
 from app.database import engine, SessionLocal
 from app.routers.analytics import router as analytics_router
 from app.routers import user_meta
-from app.routers import digests
+from app.routers import digests, ping
 from datetime import datetime
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +21,7 @@ app.add_middleware(
         "http://localhost:5173",
         "https://your-production-url.com",
         "http://127.0.0.1:5173",
+        "https://recoverytrack.vercel.app/",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -158,3 +159,4 @@ app.include_router(analytics_router)
 app.include_router(recovery.router)
 app.include_router(user_meta.router)
 app.include_router(digests.router)
+app.include_router(ping.router, prefix="")
