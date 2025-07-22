@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { uploadAvatar } from '../../api/uploadAvatar';
 import { useProfile } from '../../hooks/useProfile';
 import { pastelFromName } from '../../utils/pastelFromName';
@@ -68,7 +69,14 @@ export function ProfileStep({ defaultValues, onNext }: Props) {
       }
     
       const { avatar_file, _, ...rest } = data;
-      await updateProfile({ ...rest, avatar_url });
+      try {
+        await updateProfile({ ...rest, avatar_url });
+        onNext({} as any);                      // advance to next step
+      } catch (err: any) {
+        // 👇 this is the line that prints FastAPI’s 422 details
+        console.error(err.response?.data);
+        toast.error("Profile update failed");
+      }
       onNext({} as any);
     };
 
