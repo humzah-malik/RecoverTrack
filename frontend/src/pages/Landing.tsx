@@ -1,49 +1,48 @@
-import { Link } from "react-router-dom"
-import ThemeToggle from "../components/ThemeToggle"
-import HRVWave from "../components/HRVWave"
-import { LucideUserPlus, LucideMoon, LucideBarChart } from "lucide-react"
-import checkinImg from "./screenshots/checkin.png"
-import recoveryImg from "./screenshots/recovery.png"
-import trendsImg from "./screenshots/trendsGraph.png"
-import calendarImg from "./screenshots/calendar.png"
-import volGraphImg from "./screenshots/volGraph.png"
-import profileImg from "./screenshots/profile.png"
+import { Link } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
+import HRVWave from "../components/HRVWave";
+import { LucideUserPlus, LucideMoon, LucideBarChart } from "lucide-react";
 
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Pagination } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/pagination'
-import { Autoplay, Navigation } from 'swiper/modules'
-import 'swiper/css/navigation'
+import checkinImg   from "./screenshots/checkin.png";
+import recoveryImg  from "./screenshots/recovery.png";
+import trendsImg    from "./screenshots/trendsGraph.png";
+import calendarImg  from "./screenshots/calendar.png";
+import volGraphImg  from "./screenshots/volGraph.png";
+import profileImg   from "./screenshots/profile.png";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 
 const coreFeatures = [
   {
     title: "Daily Check-ins",
     img: checkinImg,
     alt: "Daily check-ins screenshot",
-    description: "Track how you feel every day."
+    description: "Track how you feel every day.",
   },
   {
     title: "Smart Recovery Score",
     img: recoveryImg,
     alt: "Recovery score banner",
-    description: "Get a score based on your daily inputs."
+    description: "Get a score based on your daily inputs.",
   },
   {
     title: "Trends & Insights",
     img: trendsImg,
     alt: "Trends insight graph",
-    description: "Visualize your health patterns over time."
+    description: "Visualize your health patterns over time.",
   },
-]
+];
 
 export default function Landing() {
   return (
-    <main className="relative text-foreground
-      bg-background
-      bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.04),transparent_60%)]
-      dark:bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02),transparent_60%)]">
-
+    <main
+      className="relative text-foreground bg-background
+                 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.04),transparent_60%)]
+                 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02),transparent_60%)]"
+    >
       {/* THEME TOGGLE */}
       <div className="absolute bottom-4 right-4 z-50">
         <ThemeToggle />
@@ -51,10 +50,13 @@ export default function Landing() {
 
       {/* 1. HERO */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <div className="flex items-center gap-3 mb-6">
-          <i className="fas fa-wave-square text-4xl" />
-          <span className="text-5xl font-bold">RecoverTrack</span>
-        </div>
+      <div className="flex items-center gap-3 mb-6">
+        <i className="
+              fas fa-wave-square text-4xl
+              text-[#00b894] dark:text-[#d6b370]   /* teal light / gold dark */
+          " />
+        <span className="text-5xl font-bold">RecoverTrack</span>
+      </div>
         <p className="text-xl max-w-xl mb-10">
           Track your recovery. Optimize your training.
         </p>
@@ -83,36 +85,44 @@ export default function Landing() {
       </section>
 
       {/* 2. CORE FEATURES (SLIDESHOW) */}
-      <section className="pt-32 pb-32 px-6">
-        <div className="glass-panel text-center">
-          <h2 className="text-2xl font-semibold mb-14">Core Features</h2>
-          <Swiper
-            modules={[Pagination, Autoplay]}
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 4000 }}
-            spaceBetween={30}
-            slidesPerView={1}
-            className="w-full max-w-2xl mx-auto"
-          >
-            {coreFeatures.map((feature, index) => (
-              <SwiperSlide key={index}>
-                <div className="card-base p-6 flex flex-col items-center">
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <div className="w-full aspect-[4/3] rounded-lg overflow-hidden  flex items-center justify-center">
-                    <img
-                      src={feature.img}
-                      alt={feature.alt}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                      draggable={false}
-                    />
-                  </div>
-                  <p className="mt-4 text-sm text-muted-foreground">{feature.description}</p>
+      <section className="pt-28 pb-28 px-6">
+        <h2 className="text-2xl font-semibold mb-10 text-center mx-auto">
+          Core Features
+        </h2>
+
+        <Swiper
+          modules={[Pagination, Autoplay]}
+          pagination={{ clickable: true }}
+          autoplay={{ delay: 4000 }}
+          spaceBetween={30}
+          slidesPerView={1}
+          className="w-full max-w-2xl mx-auto"
+        >
+          {coreFeatures.map((feature, index) => (
+            <SwiperSlide key={index}>
+              {/* padding-bottom to give breathing room above the dots */}
+              <div className="card-base p-6 pb-10 flex flex-col items-center">
+                <h3 className="text-lg font-semibold mb-3 text-center">
+                  {feature.title}
+                </h3>
+
+                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden flex items-center justify-center">
+                  <img
+                    src={feature.img}
+                    alt={feature.alt}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                    draggable={false}
+                  />
                 </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
+
+                <p className="mt-3 text-sm text-muted-foreground text-center">
+                  {feature.description}
+                </p>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </section>
 
       {/* 3. PEEK INSIDE THE APP */}
@@ -120,7 +130,7 @@ export default function Landing() {
         <h2 className="text-2xl font-semibold mb-14">Peek inside the app</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
           <div className="card-base p-4">
-            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden  flex items-center justify-center">
+            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden flex items-center justify-center">
               <img
                 src={calendarImg}
                 alt="Calendar view"
@@ -129,10 +139,12 @@ export default function Landing() {
                 draggable={false}
               />
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">Daily training &amp; log overview</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Daily training &amp; log overview
+            </p>
           </div>
           <div className="card-base p-4">
-            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden  flex items-center justify-center">
+            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden flex items-center justify-center">
               <img
                 src={volGraphImg}
                 alt="Volume graph"
@@ -141,10 +153,12 @@ export default function Landing() {
                 draggable={false}
               />
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">Compare volume vs fatigue</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Compare volume vs fatigue
+            </p>
           </div>
           <div className="card-base p-4">
-            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden  flex items-center justify-center">
+            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden flex items-center justify-center">
               <img
                 src={profileImg}
                 alt="Profile card"
@@ -153,7 +167,9 @@ export default function Landing() {
                 draggable={false}
               />
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">Custom goals and user profile</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Custom goals and user profile
+            </p>
           </div>
         </div>
       </section>
@@ -179,5 +195,5 @@ export default function Landing() {
         </div>
       </section>
     </main>
-  )
+  );
 }

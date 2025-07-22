@@ -1,6 +1,6 @@
 // src/layouts/AuthLayout.tsx
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -13,13 +13,19 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <main className="w-full max-w-sm space-y-6">
         {/* ── Brand header ─────────────────────────────── */}
         <header className="text-center space-y-1">
-        <div className="flex items-center justify-center gap-2">
-            <i className="fas fa-wave-square text-3xl text-[var(--accent)]" />
-            <h1 className="text-2xl font-semibold tracking-tight">RecoverTrack</h1>
-        </div>
-        <p className="text-muted text-sm">
-            Track your fitness recovery journey
-        </p>
+        <Link to="/" className="inline-flex items-center justify-center gap-2 group">
+            <i
+            className="
+                fas fa-wave-square text-3xl
+                text-[#00b894] dark:text-[#d6b370]
+                transition-colors group-hover:opacity-90
+            "
+            />
+            <h1 className="text-2xl font-semibold tracking-tight">
+            RecoverTrack
+            </h1>
+        </Link>
+        <p className="text-muted text-sm">Track your fitness recovery journey</p>
         </header>
 
         {/* ── Card shell for auth forms ────────────────── */}
