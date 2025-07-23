@@ -246,13 +246,6 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                       onChange={handleChange}
                       disabled={disableMorning}
                     />
-                    <Field
-                      label="Water Intake (L)"
-                      name="water"
-                      value={form.water}
-                      onChange={handleChange}
-                      disabled={disableMorning}
-                    />
                   </div>
 
                   {/* then: sliders stacked in one column */}
@@ -390,6 +383,13 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                     <Field label="Protein (g)" name="protein"  value={form.protein}  onChange={handleChange} />
                     <Field label="Carbs (g)"   name="carbs"    value={form.carbs}    onChange={handleChange} />
                     <Field label="Fat (g)"     name="fat"      value={form.fat}      onChange={handleChange} />
+                    <Field
+                      label="Water Intake (L)"
+                      name="water"
+                      value={form.water}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
                   {/* right column: empty */}
                   <div />
                 </div>

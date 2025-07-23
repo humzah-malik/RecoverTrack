@@ -16,6 +16,8 @@ import AppNav from '../components/AppNav';
 import ForgotPassword    from '../pages/ForgotPassword'
 import ConfirmEmailSent  from '../pages/ConfirmEmailSent'
 import { Analytics } from '@vercel/analytics/react';
+import SiteBackground from '../components/SiteBackground'
+
 
 // A simple protected wrapper
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -23,11 +25,13 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return isAuthenticated ? children : <Navigate to="/auth/login" replace />
 }
 
+<SiteBackground />
 export default function AppRouter() {
   const { profile } = useProfile()
 
   return (
     <BrowserRouter>
+    <SiteBackground />
       {/* Global header with theme toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />

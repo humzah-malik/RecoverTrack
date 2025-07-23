@@ -161,6 +161,7 @@ export default function Dashboard() {
                     { label: 'Protein (g)', value: eveningLog?.macros?.protein },
                     { label: 'Carbs (g)',   value: eveningLog?.macros?.carbs },
                     { label: 'Fat (g)',     value: eveningLog?.macros?.fat },
+                    { label: 'Water Intake (L)',  value: eveningLog?.water_intake_l },
                   ],
                 },
               ]}
@@ -186,12 +187,10 @@ export default function Dashboard() {
                           { label: 'Sleep Duration',    value: sleepDurationText },
                           { label: 'Resting HR',        value: todayLog?.resting_hr },
                           { label: 'HRV',               value: todayLog?.hrv },
-                          { label: 'Water Intake (L)',  value: todayLog?.water_intake_l },
                           { label: 'Stress',            value: todayLog?.stress },
                           { label: 'Motivation',        value: todayLog?.motivation },
                           { label: 'Soreness',          value: todayLog?.soreness },
                           { label: 'Sleep Quality',     value: todayLog?.sleep_quality },
-                          { label: 'Recovery Rating',   value: todayLog?.recovery_rating },
                         ]
                       : [],
                   },

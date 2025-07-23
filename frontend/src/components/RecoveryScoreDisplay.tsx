@@ -104,10 +104,6 @@ export default function RecoveryScoreDisplay({ date }: Props) {
 
       <p className="font-semibold mb-1 text-[var(--text-primary)]">Recovery Score</p>
 
-      {!hasScore && !isLoading && !isError && (
-        <p className="text-muted text-xs">Complete at least one daily log</p>
-      )}
-
       {isLoading && (
         <p className="text-muted text-xs">Calculating…</p>
       )}
