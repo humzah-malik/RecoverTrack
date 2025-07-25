@@ -14,60 +14,59 @@ jobs:
 
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}  # <-- add this
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.12
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
 
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
-    - name: Install dependencies
-      run: |
-        pip install -r backend/requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
 
-    - name: Update dataset
-      run: |
-        python backend/scripts/update_dataset.py --debug
+      - name: Update dataset
+        run: |
+          python backend/scripts/update_dataset.py --debug
 
-    - name: Train model
-      working-directory: backend
-      run: |
-        python scripts/train_recovery_lr.py
+      - name: Train model
+        working-directory: backend
+        run: |
+          python scripts/train_recovery_lr.py
 
-    - name: Upsert per-user calibration heads
-      env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      run: |
-        pip install supabase        # or supabase-py — same as in requirements
-        python backend/scripts/upsert_user_heads.py
+      - name: Upsert per-user calibration heads
+        # IMPORTANT: run from repo root or set the working-directory to backend and fix the script path.
+        # We'll keep root and let the script discover the file.
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}   # <-- service key
+        run: |
+          python backend/scripts/upsert_user_heads.py
 
-    - name: Save model artifacts
-      run: |
-        TODAY=$(date +'%Y-%m-%d')
-        mkdir -p backend/models/$TODAY
-        cp backend/app/recovery_*.pt backend/models/$TODAY/ || true
-        cp backend/app/recovery_*.joblib backend/models/$TODAY/ || true
-        cp backend/app/recovery_*.pkl backend/models/$TODAY/ || true
+      - name: Save model artifacts
+        run: |
+          TODAY=$(date +'%Y-%m-%d')
+          mkdir -p backend/models/$TODAY
+          cp backend/app/recovery_*.pt      backend/models/$TODAY/ || true
+          cp backend/app/recovery_*.joblib  backend/models/$TODAY/ || true
+          cp backend/app/recovery_*.pkl     backend/models/$TODAY/ || true
+          # update latest symlink (do it inside models dir to avoid a broken relative link)
+          (cd backend/models && rm -f latest && ln -s "$TODAY" latest)
 
-        # update latest symlink
-        rm -f backend/models/latest
-        ln -s $TODAY backend/models/latest
-
-    - name: Auto commit updated model
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "🤖 Nightly model retrain: ${{ github.run_id }}"
-        branch: main
+      - name: Auto commit updated model
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Nightly model retrain: ${{ github.run_id }}"
+          branch: main
