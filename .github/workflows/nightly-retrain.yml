@@ -37,6 +37,19 @@ jobs:
         run: |
           pip install -r backend/requirements.txt
 
+      - name: Sanity check Supabase env
+        env:
+            SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+            SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+            SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+            python - <<'PY'
+            import os
+            print("SUPABASE_URL set?         ", bool(os.getenv("SUPABASE_URL")))
+            print("SUPABASE_SERVICE_KEY set? ", bool(os.getenv("SUPABASE_SERVICE_KEY")))
+            print("SUPABASE_KEY set?         ", bool(os.getenv("SUPABASE_KEY")))
+            PY
+
       - name: Update dataset
         working-directory: backend
         env:

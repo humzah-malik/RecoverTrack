@@ -34,6 +34,7 @@ print(f"🕐 Last training date: {last_date.date()}")
 url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
 if not url or not key:
+    print("DEBUG:", "URL?", bool(url), "SERVICE?", bool(os.getenv("SUPABASE_SERVICE_KEY")), "KEY?", bool(os.getenv("SUPABASE_KEY")))
     raise EnvironmentError("Missing SUPABASE_URL or SUPABASE_SERVICE_KEY/KEY")
 
 supabase: Client = create_client(url, key)
