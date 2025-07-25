@@ -66,11 +66,14 @@ joblib.dump(global_mean, Path("app/recovery_global_mean.pkl"))
 df_tr["user_bias"] = df_tr["user_id"].map(user_means)
 df_va["user_bias"] = df_va["user_id"].map(user_means).fillna(global_mean)
 
+df_tr["y_obj"] = df_tr[target] - df_tr["user_id"].map(user_means) + global_mean
+df_va["y_obj"] = df_va[target] - df_va["user_id"].map(user_means).fillna(global_mean) + global_mean
+
 num_feats2 = num_feats
 Xtr = df_tr[num_feats2 + cat_feats]
-ytr = df_tr[target].values
+ytr = df_tr["y_obj"].values
 Xva = df_va[num_feats2 + cat_feats]
-yva = df_va[target].values
+yva = df_va["y_obj"].values
 
 numeric_pipe = Pipeline([("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler())])
 preproc = ColumnTransformer([
@@ -134,7 +137,8 @@ with torch.no_grad():
     # ------- final train preds (for heads) -------
     tr_pred_norm = model(torch.from_numpy(X_tr_np).to(device)).cpu().numpy()
     tr_pred = tr_pred_norm * y_std + y_mean
-    df_tr["residual"] = ytr - tr_pred
+    df_tr["residual"] = df_tr[target].values - tr_pred
+
 
     # ------- final val preds (for metrics) -------
     va_pred_norm = model(torch.from_numpy(X_va_np).to(device)).cpu().numpy()
@@ -152,8 +156,10 @@ else:
 # Baselines
 global_mean = ytr.mean()
 mae_global  = np.mean(np.abs(yva - global_mean))
-va_user_means = df_tr.groupby("user_id")[target].mean()
-per_user_pred = df_va["user_id"].map(va_user_means).fillna(global_mean).values
+va_user_means_obj = df_tr.groupby("user_id")["y_obj"].mean()
+per_user_pred = df_va["user_id"].map(va_user_means_obj).fillna(global_mean).values
+val_mae_raw = mean_absolute_error(df_va[target].values, va_pred)
+print(f"VAL MAE vs RAW user label (expected worse): {val_mae_raw:.3f}")
 mae_usermean  = np.mean(np.abs(yva - per_user_pred))
 
 # Per-user MAE distribution (fairness / personalization quality)
