@@ -6,6 +6,16 @@ import TrendsHeader from '../components/TrendsHeader';
 import TrendChart from '../components/TrendChart';
 import { useTrendsData } from '../hooks/useTrendsData';
 import { useInsights } from '../hooks/useInsights';
+import BackgroundGradient from '../components/BackgroundGradient'
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
 
 export default function Trends() {
   const [view, setView] = useState<'week' | 'month'>('month');
@@ -30,16 +40,15 @@ export default function Trends() {
         : c.add(1, 'month').startOf('month')
     );
 
-  // 3️⃣ period string (just for header wording)
+  // period string (just for header wording)
   const period = view === 'week' ? '7d' : '30d';
 
-  // 4️⃣ fetch from backend
+  // fetch from backend
   const { logs, recs, isLoading, error } = useTrendsData(view, cursor);
   console.log('📊 logs:', logs);
   console.log('📈 recs:', recs);
 
-  // ────────────────────────────────────────────────────────────────────
-  // 5️⃣ Compute header stats
+  // Compute header stats
   const scores = recs.map(r => r.score);
   const average = scores.reduce((a,b) => a+b, 0) / scores.length || 0;
   const sd = Math.sqrt(
@@ -81,8 +90,11 @@ export default function Trends() {
   if (isLoading) return <div>Loading…</div>;
   if (error)     return <div>Error loading data</div>;
 
-  // ────────────────────────────────────────────────────────────────────
-  // 6️⃣ Bucket logs & recs by label (day-of-week or week-of-month)
+  const rhrVals = logs
+   .filter(l => l.resting_hr != null)
+   .map(l => Number(l.resting_hr));
+  const rhrBaseline = rhrVals.length ? median(rhrVals) : 0;
+  // Bucket logs & recs by label (day-of-week or week-of-month)
   const bucketLogs = logs.map(l => ({
     ...l,
     bucket: view === 'week'
@@ -104,7 +116,7 @@ export default function Trends() {
 
   // 7️⃣ Build chartData array
   const chartData = buckets.map(bucket => {
-    //console.log('🧮 chartData:', chartData);
+    //console.log('chartData:', chartData);
     const days = logsByBucket[bucket];
     const preds = recsByBucket[bucket] || [];
 
@@ -113,16 +125,23 @@ export default function Trends() {
       : 0;
 
     const sleep = days.reduce((a,d) => a + d.sleep_h, 0)/days.length || 0;
-    const hrv   = days.reduce((a,d) => a + d.hrv, 0)/days.length || 0;
+    const rhrDelta = (() => {
+            const valid = days.filter(d => d.resting_hr != null);
+            if (!valid.length || !rhrBaseline) return 0;
+            const avgRHR = valid.reduce((a,d)=>a+(d.resting_hr as number),0)/valid.length;
+            return ((rhrBaseline - avgRHR) / rhrBaseline) * 100;
+          })();
     const volume   = days.reduce((a,d) => a + d.volume, 0);
     const failures = days.reduce((a,d) => a + d.failures, 0);
 
-    return { label: bucket, recovery, sleep, hrv, volume, failures };
+    return { label: bucket, recovery, sleep, rhrDelta, volume, failures };
   });
 
-  // ────────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundGradient />
+      </div>
       {/* header with nav, toggle, and metrics */}
       <TrendsHeader
         view={view}
@@ -143,7 +162,7 @@ export default function Trends() {
               label: d.label,
               recovery: d.recovery,
               sleep: d.sleep,
-              hrv: d.hrv
+              rhr: d.rhrDelta
             }))}
           />
         </div>

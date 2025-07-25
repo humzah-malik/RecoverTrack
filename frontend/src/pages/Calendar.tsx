@@ -5,6 +5,7 @@ import CalendarHeader from '../components/CalendarHeader';
 import CalendarGrid   from '../components/CalendarGrid';
 import { useCalendarData } from '../hooks/useCalendarData';
 import DailyLogModal from '../components/DailyLogModal';
+import BackgroundGradient from '../components/BackgroundGradient'
 
 /* small helper for the header cards */
 function Card({ title, value }: { title: string | number; value: string | number }) {
@@ -69,6 +70,9 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundGradient />
+      </div>
       <CalendarHeader
         view={view}
         setView={setView}

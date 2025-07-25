@@ -7,7 +7,7 @@ export interface RawLog {
   date:         string
   sleep_start?: string
   sleep_end?:   string
-  hrv:          number
+  resting_hr?:          number
   stress:       number
   trained:      boolean
   total_sets:   number
@@ -23,7 +23,7 @@ export interface RecoveryPred {
 export interface DayData {
   date:          string
   sleep_h:       number
-  hrv:           number
+  resting_hr:    number | null
   stress:        number
   trained:       0|1
   volume:        number
@@ -94,7 +94,7 @@ export function useTrendsData(view: 'week'|'month', cursor: Dayjs) {
         const mapped: DayData = {
           date:          l.date,
           sleep_h,
-          hrv:           l.hrv,
+          resting_hr:    l.resting_hr ?? null,
           stress:        l.stress,
           trained:       l.trained ? 1 : 0,
           volume:        l.total_sets,

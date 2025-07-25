@@ -1,6 +1,7 @@
 // src/pages/ImportPage.tsx
 import FileDrop from '../components/FileDrop'
 import { Toaster } from 'react-hot-toast'
+import BackgroundGradient from '../components/BackgroundGradient'
 
 export default function ImportPage() {
   return (
@@ -8,6 +9,9 @@ export default function ImportPage() {
       <Toaster position="top-center" />
 
       <main className="flex-grow flex justify-center items-start pt-16 pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundGradient />
+      </div>
       <section
           className="card-base max-w-3xl w-full p-8
                      bg-white dark:bg-[var(--surface)]"

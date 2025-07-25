@@ -24,7 +24,7 @@ interface LineData {
   label: string;
   recovery: number;
   sleep: number;
-  hrv: number;
+  rhr: number;
 }
 
 interface BarData {
@@ -78,7 +78,7 @@ export default function TrendChart({ chart, data }: TrendChartProps) {
             />
             <Line type="monotone" dataKey="recovery" name="Recovery" stroke="#F87171" />
             <Line type="monotone" dataKey="sleep"    name="Sleep (h)"  stroke="#34D399" />
-            <Line type="monotone" dataKey="hrv"      name="HRV"        stroke="#38BDF8" />
+            <Line type="monotone" dataKey="rhr" name="rHR Δ%" stroke="#38BDF8" />
           </LineChart>
         </ResponsiveContainer>
       </div>

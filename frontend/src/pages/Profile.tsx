@@ -14,6 +14,7 @@ import { uploadAvatar } from '../api/uploadAvatar';
 import { useProfile } from '../hooks/useProfile';
 import { useSplits } from '../hooks/useProfile';
 import { useActivityLevels } from '../hooks/useActivityLevels';
+import BackgroundGradient from '../components/BackgroundGradient'
 
 export default function Profile() {
   const qc = useQueryClient();
@@ -88,6 +89,9 @@ export default function Profile() {
           {success}
         </div>
       )}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundGradient />
+      </div>
 
       {/* Header */}
       <div className="card-glow hoverable mb-6">

@@ -11,7 +11,6 @@ import { DigestAlerts } from '../components/DigestAlerts'
 import { DigestTips } from '../components/DigestTips'
 import { getRecovery } from '../api/recovery'
 import { useState } from 'react'
-import BackgroundEffects from "../components/BackgroundEffects";
 import BackgroundGradient from '../components/BackgroundGradient'
 
 export default function Dashboard() {
@@ -100,7 +99,6 @@ export default function Dashboard() {
         "
       >
       <div className="pointer-events-none absolute inset-0 z-0">
-        <BackgroundEffects />
         <BackgroundGradient />
       </div>
         {/* ── Banner ───────────────────────────────── */}

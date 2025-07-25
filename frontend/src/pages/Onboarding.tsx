@@ -5,6 +5,7 @@ import { GoalStep } from './Onboarding/GoalStep';
 import { ReviewStep } from './Onboarding/ReviewStep';
 import { SplitStep } from './Onboarding/SplitStep';
 import { markOnboardingComplete } from '../api/users';
+import BackgroundGradient from '../components/BackgroundGradient'
 
 export default function Onboarding() {
   const { profile, isLoading, updateProfile } = useProfile();
@@ -21,6 +22,9 @@ export default function Onboarding() {
 
   return (
     <div className="max-w-md mx-auto p-6 sm:p-8 space-y-8">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundGradient />
+      </div>
       {/* ─── Step 0 : Profile ───────────────────────── */}
       {step === 0 && (
         <ProfileStep
