@@ -188,9 +188,11 @@ async def predict(
         print(df_pred.to_string(index=False))
         print("──────────────────────────────────────────────────────────────\n")
 
-    # 11) predict!
-    raw_score = predict_recovery(df_pred)
-    score = apply_user_head(me.id, raw_score, db)
+    # 11) predict!  (objective + tiny personalization ε)
+    raw_score   = predict_recovery(df_pred)
+    personal_sc = apply_user_head(me.id, raw_score, db)
+    EPS = 0.10
+    score = (1 - EPS) * raw_score + EPS * personal_sc
     stmt = insert(RecoveryPrediction).values(
         user_id=me.id,
         date=up_to,

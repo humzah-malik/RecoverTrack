@@ -137,7 +137,7 @@ def normalize_log(row):
         # subjective
         "stress":        row.get("stress"),
         "motivation":    row.get("motivation"),
-        "soreness":      row.get("soreness"),
+        "soreness":      (row.get("soreness") or {}).get("general"),
         "water_intake_l":row.get("water_intake_l"),
         # placeholder; will be resolved by lookup_split_info
         "split_type":    "",

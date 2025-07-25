@@ -1,6 +1,7 @@
 // src/layouts/AuthLayout.tsx
 import type { ReactNode } from 'react'
 import { NavLink, Link } from 'react-router-dom'
+import BackgroundEffects from "../components/BackgroundEffects";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -11,6 +12,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       "
     >
       <main className="w-full max-w-sm space-y-6">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundEffects />
+      </div>
         {/* ── Brand header ─────────────────────────────── */}
         <header className="text-center space-y-1">
         <Link to="/" className="inline-flex items-center justify-center gap-2 group">

@@ -30,12 +30,17 @@ module.exports = {
         grad:      { '0%,100%': { backgroundPosition: '0% 50%' }, '50%': { backgroundPosition: '100% 50%' } },
         gridShift: { '0%': { backgroundPosition: '0 0, 0 0' }, '100%': { backgroundPosition: '60px 60px, 60px 60px' } },
         pulseSoft: { '0%,100%': { opacity: .8 }, '50%': { opacity: 1 } },
+        'gradient-x': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
       },
       animation: {
         'scroll-dot': 'scrollDot 1.2s ease-in-out infinite',
         'grad-slow':  'grad 18s ease-in-out infinite',
         'grid-drift': 'gridShift 60s linear infinite',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        'gradient-x': 'gradient-x 25s ease infinite',
       },
     },
   },

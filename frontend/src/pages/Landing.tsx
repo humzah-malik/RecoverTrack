@@ -10,11 +10,12 @@ import trendsImg from "./screenshots/trendsGraph.png";
 import calendarImg from "./screenshots/calendar.png";
 import volGraphImg from "./screenshots/volGraph.png";
 import profileImg from "./screenshots/profile.png";
-import SiteBackground from "../components/SiteBackground";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import BackgroundEffects from "../components/BackgroundEffects";
+import BackgroundGradient from "../components/BackgroundGradient";
 
 const coreFeatures = [
   {
@@ -53,16 +54,20 @@ export default function Landing() {
   }, []);  
 
   return (
-    <main className="relative text-foreground bg-transparent overflow-hidden">
+    <main className="relative z-[10] text-foreground bg-transparent overflow-hidden">
       {/* <SiteBackground /> */}
       {/* THEME TOGGLE */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <BackgroundEffects />
+        <BackgroundGradient />
+      </div>
+      <div className="relative z-10">
       <div className="absolute bottom-4 right-4 z-50">
         <ThemeToggle />
       </div>
 
       {/* 1. HERO */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative">
-        {/* === TEMP GRID BG TEST === */}
         
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-3 mb-6">
@@ -202,6 +207,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
+      </div>
     </main>
   );
 }

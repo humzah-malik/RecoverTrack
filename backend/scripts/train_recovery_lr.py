@@ -7,7 +7,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
+try:
+    from scipy.stats import spearmanr
+    HAVE_SCIPY = True
+except Exception:
+    HAVE_SCIPY = False
 import joblib
 import torch
 from torch import nn
@@ -57,10 +62,11 @@ df_va = df.iloc[val_idx].copy()
 user_means = df_tr.groupby("user_id")[target].mean()
 global_mean = df_tr[target].mean()
 joblib.dump(global_mean, Path("app/recovery_global_mean.pkl"))
+# keep user_bias ONLY for building user_heads later; do NOT feed it to the model 
 df_tr["user_bias"] = df_tr["user_id"].map(user_means)
 df_va["user_bias"] = df_va["user_id"].map(user_means).fillna(global_mean)
 
-num_feats2 = num_feats + ["user_bias"]
+num_feats2 = num_feats
 Xtr = df_tr[num_feats2 + cat_feats]
 ytr = df_tr[target].values
 Xva = df_va[num_feats2 + cat_feats]
@@ -125,11 +131,57 @@ for epoch in range(1, 201):
 model.load_state_dict(best_state)
 model.eval()
 with torch.no_grad():
+    # ------- final train preds (for heads) -------
     tr_pred_norm = model(torch.from_numpy(X_tr_np).to(device)).cpu().numpy()
+    tr_pred = tr_pred_norm * y_std + y_mean
+    df_tr["residual"] = ytr - tr_pred
 
-tr_pred = tr_pred_norm * y_std + y_mean
-df_tr["residual"] = ytr - tr_pred
+    # ------- final val preds (for metrics) -------
+    va_pred_norm = model(torch.from_numpy(X_va_np).to(device)).cpu().numpy()
+    va_pred = va_pred_norm * y_std + y_mean
 
+# =====================  NEW: METRICS =====================
+val_mae  = mean_absolute_error(yva, va_pred)
+val_rmse = mean_squared_error(yva, va_pred, squared=False)
+val_r2   = r2_score(yva, va_pred)
+if HAVE_SCIPY:
+    val_rho, _ = spearmanr(yva, va_pred)
+else:
+    val_rho = None
+
+# Baselines
+global_mean = ytr.mean()
+mae_global  = np.mean(np.abs(yva - global_mean))
+va_user_means = df_tr.groupby("user_id")[target].mean()
+per_user_pred = df_va["user_id"].map(va_user_means).fillna(global_mean).values
+mae_usermean  = np.mean(np.abs(yva - per_user_pred))
+
+# Per-user MAE distribution (fairness / personalization quality)
+per_user_mae = (
+    pd.DataFrame({
+        "uid": df_va["user_id"].values,
+        "y":   yva,
+        "yhat": va_pred
+    })
+    .groupby("uid")
+    .apply(lambda g: np.mean(np.abs(g["y"] - g["yhat"])))
+)
+
+print("\n================= FINAL VALIDATION METRICS =================")
+print(f"VAL  MAE: {val_mae:.3f}")
+print(f"VAL RMSE: {val_rmse:.3f}")
+print(f"VAL   R²: {val_r2:.3f}")
+if val_rho is not None:
+    print(f"VAL Spearman ρ: {val_rho:.3f}")
+else:
+    print("VAL Spearman ρ: (scipy not installed)")
+print("\n---- Baselines ----")
+print(f"Global-mean baseline   MAE: {mae_global:.3f}  → ΔMAE: {mae_global - val_mae:.3f}")
+print(f"Per-user-mean baseline MAE: {mae_usermean:.3f} → ΔMAE: {mae_usermean - val_mae:.3f}")
+print("\n---- Per-user MAE distribution ----")
+print(f"median={per_user_mae.median():.3f}, IQR=({per_user_mae.quantile(0.25):.3f}, {per_user_mae.quantile(0.75):.3f})")
+print("============================================================\n")
+# ==========================================================
 # 2.  For now we only learn a bias (average residual).  Slope = 1.0.
 user_heads = (
     df_tr.groupby("user_id")["residual"]
