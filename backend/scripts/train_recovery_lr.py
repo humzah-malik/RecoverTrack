@@ -142,7 +142,7 @@ with torch.no_grad():
 
 # =====================  NEW: METRICS =====================
 val_mae  = mean_absolute_error(yva, va_pred)
-val_rmse = mean_squared_error(yva, va_pred, squared=False)
+val_rmse = float(np.sqrt(mean_squared_error(yva, va_pred)))
 val_r2   = r2_score(yva, va_pred)
 if HAVE_SCIPY:
     val_rho, _ = spearmanr(yva, va_pred)
