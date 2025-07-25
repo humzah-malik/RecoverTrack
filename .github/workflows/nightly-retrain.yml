@@ -38,6 +38,9 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Update dataset
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           python backend/scripts/update_dataset.py --debug
 

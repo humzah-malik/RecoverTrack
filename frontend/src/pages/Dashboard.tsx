@@ -22,6 +22,7 @@ export default function Dashboard() {
   const tomorrow  = dayjs().add(1, 'day').format('YYYY-MM-DD')
   const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD')
   const hour      = dayjs().hour()
+  const scoreDate = hour < 17 ? today : tomorrow
 
   const eveningDate  = hour < 17 ? today : tomorrow
   const eveningTitle =
@@ -45,12 +46,12 @@ export default function Dashboard() {
   )
 
   const { data: recovery } = useQuery({
-    queryKey: ['recovery', today],
-    queryFn: () => getRecovery({ user_id: profile!.id, date: today }),
-    enabled: profile?.id != null && hasMorning,
-    refetchOnWindowFocus: false,
-    retry: false,
-  })
+       queryKey: ['recovery', scoreDate],
+       queryFn: () => getRecovery({ user_id: profile!.id, date: scoreDate }),
+       enabled: profile?.id != null && (hour < 17 ? hasMorning : false),
+        refetchOnWindowFocus: false,
+        retry: false,
+      })
 
   let bannerMessage = ''
   if (hour < 11) {
@@ -126,7 +127,7 @@ export default function Dashboard() {
           aria-label="Recovery score"
           className="card-base p-8 sm:p-10 flex flex-col items-center text-center gap-4"
         >
-          <RecoveryScoreDisplay date={today} />
+          <RecoveryScoreDisplay date={scoreDate} />
           {!recovery && hasMorning && (
             <p className="text-muted text-xs">
               Generating recovery score…

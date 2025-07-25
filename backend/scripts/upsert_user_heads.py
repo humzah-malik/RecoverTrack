@@ -26,10 +26,8 @@ print(f"Upserting {len(df)} heads…")
 # ----- ALWAYS use the service key for writes -----
 url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
-
 if not url or not key:
-    print("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_KEY/KEY")
-    exit(1)
+     raise EnvironmentError("Missing SUPABASE_URL or SUPABASE_SERVICE_KEY/KEY")
 
 supabase: Client = create_client(url, key)
 
