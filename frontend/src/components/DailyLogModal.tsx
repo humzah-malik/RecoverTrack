@@ -85,7 +85,7 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
   
     if (disableMorning) {
       const morningFields = [
-        'sleepStart', 'sleepEnd', 'restingHr', 'hrv', 'water',
+        'sleepStart', 'sleepEnd', 'restingHr', 'hrv', 'recoveryRating',
         'stress', 'motivation', 'soreness', 'sleepQuality'
       ];
       if (morningFields.includes(name)) return;
@@ -246,6 +246,16 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                       onChange={handleChange}
                       disabled={disableMorning}
                     />
+                    <Field
+                      label="Your Recovery Rating (0–100)"
+                      type="number"
+                      min={0}
+                      max={100}
+                      name="recoveryRating"
+                      value={form.recoveryRating}
+                      onChange={handleChange}
+                      disabled={disableMorning}
+                    />
                   </div>
 
                   {/* then: sliders stacked in one column */}
@@ -361,12 +371,6 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                     value={form.totalRir}
                     onChange={handleChange}
                   />
-                  <Field
-                    label="Your Recovery Rating (0–100)"
-                    name="recoveryRating"
-                    value={form.recoveryRating}
-                    onChange={handleChange}
-                  />
                 </div>
               </Section>
               </div>
@@ -384,12 +388,13 @@ export default function DailyLogModal({ date, isOpen, onClose }: Props) {
                     <Field label="Carbs (g)"   name="carbs"    value={form.carbs}    onChange={handleChange} />
                     <Field label="Fat (g)"     name="fat"      value={form.fat}      onChange={handleChange} />
                     <Field
-                      label="Water Intake (L)"
-                      name="water"
-                      value={form.water}
-                      onChange={handleChange}
-                      disabled={disableMorning}
-                    />
+                       type="number"
+                       step="0.1"
+                       label="Water Intake (L)"
+                       name="water"
+                       value={form.water}
+                       onChange={handleChange}
+                     />
                   {/* right column: empty */}
                   <div />
                 </div>

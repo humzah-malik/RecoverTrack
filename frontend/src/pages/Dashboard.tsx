@@ -128,11 +128,6 @@ export default function Dashboard() {
           className="card-base p-8 sm:p-10 flex flex-col items-center text-center gap-4"
         >
           <RecoveryScoreDisplay date={scoreDate} />
-          {!recovery && hasMorning && (
-            <p className="text-muted text-xs">
-              Generating recovery score…
-            </p>
-          )}
         </section>
         </div>
 
@@ -158,7 +153,6 @@ export default function Dashboard() {
                     { label: 'Total Sets',     value: eveningLog?.total_sets },
                     { label: 'Failure Sets',   value: eveningLog?.failure_sets },
                     { label: 'Total RIR',      value: eveningLog?.total_rir },
-                    { label: 'Recovery Rating', value: eveningLog?.recovery_rating },
                   ],
                 },
                 {
@@ -194,6 +188,7 @@ export default function Dashboard() {
                           { label: 'Sleep Duration',    value: sleepDurationText },
                           { label: 'Resting HR',        value: todayLog?.resting_hr },
                           { label: 'HRV',               value: todayLog?.hrv },
+                          { label: 'Recovery Rating', value: eveningLog?.recovery_rating },
                           { label: 'Stress',            value: todayLog?.stress },
                           { label: 'Motivation',        value: todayLog?.motivation },
                           { label: 'Soreness',          value: todayLog?.soreness },
