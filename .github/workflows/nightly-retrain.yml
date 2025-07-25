@@ -38,11 +38,12 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Update dataset
+        working-directory: backend
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          python backend/scripts/update_dataset.py --debug
+          python scripts/update_dataset.py --debug
 
       - name: Train model
         working-directory: backend
@@ -50,13 +51,12 @@ jobs:
           python scripts/train_recovery_lr.py
 
       - name: Upsert per-user calibration heads
-        # IMPORTANT: run from repo root or set the working-directory to backend and fix the script path.
-        # We'll keep root and let the script discover the file.
+        working-directory: backend
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}   # <-- service key
         run: |
-          python backend/scripts/upsert_user_heads.py
+          python scripts/upsert_user_heads.py
 
       - name: Save model artifacts
         run: |

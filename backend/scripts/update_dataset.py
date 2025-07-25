@@ -6,6 +6,8 @@ import pandas as pd
 from datetime import datetime
 from pathlib import Path
 from supabase import create_client, Client
+from dotenv import load_dotenv
+load_dotenv()
 
 # CLI flag
 parser = argparse.ArgumentParser(description="Append new daily-log rows to recovery_dataset.csv")
@@ -19,7 +21,7 @@ def dbg(*msg, **kw):
         print(*msg, **kw)
 
 # Load current CSV
-csv_path = Path("backend/recovery_dataset.csv")
+csv_path = Path("recovery_dataset.csv")
 if not csv_path.exists():
     raise FileNotFoundError("recovery_dataset.csv not found in backend.")
 
@@ -30,9 +32,9 @@ print(f"🕐 Last training date: {last_date.date()}")
 
 # Connect to Supabase
 url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
+key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
 if not url or not key:
-    raise EnvironmentError("Missing SUPABASE_URL or SUPABASE_KEY")
+    raise EnvironmentError("Missing SUPABASE_URL or SUPABASE_SERVICE_KEY/KEY")
 
 supabase: Client = create_client(url, key)
 
